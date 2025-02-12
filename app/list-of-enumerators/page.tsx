@@ -1,12 +1,3 @@
-// export default function EnumeratorsPage() {
-//     return (
-//       <div>
-//         <h1 className="text-2xl font-bold">Enumerators</h1>
-//         <p>Manage your enumerators here.</p>
-//       </div>
-//     );
-//   }
-  
 "use client";
 
 export default function ListOfEnumerators() {
