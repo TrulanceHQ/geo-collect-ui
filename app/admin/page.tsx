@@ -30,7 +30,7 @@ export default function DashboardPage() {
           className="bg-blue-500 text-white px-4 py-2 rounded w-full md:w-auto"
           onClick={() => setIsFormOpen(true)}
         >
-          + Add Enumerator
+          + Add User
         </button>
       </div>
 
@@ -58,6 +58,7 @@ export default function DashboardPage() {
               onChange={(e) => setRole(e.target.value)}
             >
               <option value="admin">Admin</option>
+              <option value="enumerator">Field Coordinator</option>
               <option value="enumerator">Enumerator</option>
             </select>
 
@@ -82,19 +83,24 @@ export default function DashboardPage() {
         {/* Total Data Card */}
         <div className="bg-white shadow-md rounded-lg p-4 text-center">
           <h3 className="text-lg font-semibold">Total Data</h3>
-          <p className="text-2xl font-bold">₦1,150,000</p>
+          <p className="text-2xl font-bold">1,000</p>
         </div>
 
         {/* Total States Card */}
         <div className="bg-white shadow-md rounded-lg p-4 text-center">
           <h3 className="text-lg font-semibold">Total States</h3>
-          <p className="text-2xl font-bold">₦500,000</p>
+          <p className="text-2xl font-bold">5</p>
         </div>
 
         {/* Total Enumerators Card */}
         <div className="bg-white shadow-md rounded-lg p-4 text-center">
+          <h3 className="text-lg font-semibold">Total Field Coordinators</h3>
+          <p className="text-2xl font-bold">10</p>
+        </div>
+        {/* Total Enumerators Card */}
+        <div className="bg-white shadow-md rounded-lg p-4 text-center">
           <h3 className="text-lg font-semibold">Total Enumerators</h3>
-          <p className="text-2xl font-bold">24</p>
+          <p className="text-2xl font-bold">50</p>
         </div>
       </div>
     </div>
