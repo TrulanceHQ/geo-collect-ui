@@ -9,7 +9,7 @@
   
 "use client";
 
-export default function EnumeratorsPage() {
+export default function ListOfEnumerators() {
   // Sample enumerators data
   const enumerators = [
     { id: 1, name: "Alice Johnson", email: "alice@example.com", phone: "+234 901 234 5678" },

@@ -1,108 +1,210 @@
-// "use client";
-// import { FaEdit } from "react-icons/fa"; // Import edit icon
-// import Image from "next/image";
+// // "use client";
 
-// export default function DashboardPage() {
+// // import { useState } from "react";
+
+// // export default function SignInPage() {
+// //   const [email, setEmail] = useState("");
+// //   const [password, setPassword] = useState("");
+// //   const [role, setRole] = useState("enumerator");
+// //   const [rememberMe, setRememberMe] = useState(false);
+
+// //   return (
+// //     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+// //       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+// //         <h2 className="text-2xl font-semibold mb-4 text-center">Sign In</h2>
+
+// //         {/* Email Input */}
+// //         <label className="block mb-2 font-medium">Email:</label>
+// //         <input
+// //           type="email"
+// //           className="w-full p-2 border rounded-md mb-4"
+// //           placeholder="Enter your email"
+// //           value={email}
+// //           onChange={(e) => setEmail(e.target.value)}
+// //         />
+
+// //         {/* Password Input */}
+// //         <label className="block mb-2 font-medium">Password:</label>
+// //         <input
+// //           type="password"
+// //           className="w-full p-2 border rounded-md mb-4"
+// //           placeholder="Enter your password"
+// //           value={password}
+// //           onChange={(e) => setPassword(e.target.value)}
+// //         />
+
+// //         {/* Role Selection */}
+// //         <label className="block mb-2 font-medium">Sign in as:</label>
+// //         <select
+// //           className="w-full p-2 border rounded-md mb-4"
+// //           value={role}
+// //           onChange={(e) => setRole(e.target.value)}
+// //         >
+// //           <option value="admin">Admin</option>
+// //           <option value="enumerator">Enumerator</option>
+// //         </select>
+
+// //         {/* Remember Me Checkbox */}
+// //         <div className="flex items-center mb-4">
+// //           <input
+// //             type="checkbox"
+// //             className="mr-2"
+// //             checked={rememberMe}
+// //             onChange={() => setRememberMe(!rememberMe)}
+// //           />
+// //           <label className="text-sm">Remember Me</label>
+// //         </div>
+
+// //         {/* Sign In Button */}
+// //         <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+// //           Sign In
+// //         </button>
+
+// //         {/* Forgot Password */}
+// //         <p className="text-center text-sm text-gray-600 mt-4">
+// //           Forgot password? <a href="#" className="text-blue-500">Reset here</a>
+// //         </p>
+// //       </div>
+// //     </div>
+// //   );
+// // }
+
+// "use client";
+
+// import { useState } from "react";
+
+// export default function SignInPage() {
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [role, setRole] = useState("enumerator");
+//   const [rememberMe, setRememberMe] = useState(false);
+
 //   return (
-//     <div className="p-6">
-//       {/* Profile Section */}
-//       <div className="bg-white shadow-md rounded-lg p-6 flex items-center space-x-6">
-//         {/* Profile Image */}
-//         <Image
-//           src="/profile.jpg" // Replace with actual image URL
-//           alt="Profile Picture"
-//           width={80}
-//           height={80}
-//           className="rounded-full border"
+//     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+//       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+//         <h2 className="text-2xl font-semibold mb-4 text-center">Sign In</h2>
+
+//         {/* Email Input */}
+//         <label className="block mb-2 font-medium">Email:</label>
+//         <input
+//           type="email"
+//           className="w-full p-2 border rounded-md mb-4"
+//           placeholder="Enter your email"
+//           value={email}
+//           onChange={(e) => setEmail(e.target.value)}
 //         />
 
-//         {/* Profile Info */}
-//         <div className="flex-1">
-//           <h2 className="text-xl font-semibold">John Doe</h2>
-//           <p className="text-gray-600">johndoe@example.com</p>
-//           <p className="text-gray-600">+123 456 7890</p>
+//         {/* Password Input */}
+//         <label className="block mb-2 font-medium">Password:</label>
+//         <input
+//           type="password"
+//           className="w-full p-2 border rounded-md mb-4"
+//           placeholder="Enter your password"
+//           value={password}
+//           onChange={(e) => setPassword(e.target.value)}
+//         />
+
+//         {/* Role Selection */}
+//         <label className="block mb-2 font-medium">Sign in as:</label>
+//         <select
+//           className="w-full p-2 border rounded-md mb-4"
+//           value={role}
+//           onChange={(e) => setRole(e.target.value)}
+//         >
+//           <option value="admin">Admin</option>
+//           <option value="enumerator">Enumerator</option>
+//         </select>
+
+//         {/* Remember Me Checkbox */}
+//         <div className="flex items-center mb-4">
+//           <input
+//             type="checkbox"
+//             className="mr-2"
+//             checked={rememberMe}
+//             onChange={() => setRememberMe(!rememberMe)}
+//           />
+//           <label className="text-sm">Remember Me</label>
 //         </div>
 
-//         {/* Edit Icon */}
-//         <button className="text-blue-500 hover:text-blue-700">
-//           <FaEdit size={20} />
+//         {/* Sign In Button */}
+//         <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+//           Sign In
 //         </button>
-//       </div>
 
-//       {/* Metrics Section */}
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-//         {/* Total Sales Card */}
-//         <div className="bg-white shadow-md rounded-lg p-4">
-//           <h3 className="text-lg font-semibold">Total Sales</h3>
-//           <p className="text-2xl font-bold">₦1,150,000</p>
-//         </div>
-
-//         {/* Total Commission Card */}
-//         <div className="bg-white shadow-md rounded-lg p-4">
-//           <h3 className="text-lg font-semibold">Total Commission</h3>
-//           <p className="text-2xl font-bold">₦500,000</p>
-//         </div>
-
-//         {/* Total Enumerators Card */}
-//         <div className="bg-white shadow-md rounded-lg p-4">
-//           <h3 className="text-lg font-semibold">Total Enumerators</h3>
-//           <p className="text-2xl font-bold">24</p>
-//         </div>
+//         {/* Forgot Password */}
+//         <p className="text-center text-sm text-gray-600 mt-4">
+//           Forgot password? <a href="#" className="text-blue-500">Reset here</a>
+//         </p>
 //       </div>
 //     </div>
 //   );
 // }
+
 "use client";
-import { FaEdit } from "react-icons/fa"; // Import edit icon
-import Image from "next/image";
 
-export default function DashboardPage() {
+import { useState } from "react";
+
+export default function SignInPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("enumerator");
+  const [rememberMe, setRememberMe] = useState(false);
+
   return (
-    <div className="p-6">
-      {/* Profile Section */}
-      <div className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-x-6">
-        {/* Profile Image */}
-        <Image
-          src="/profile.jpg" // Replace with actual image URL
-          alt="Profile Picture"
-          width={80}
-          height={80}
-          className="rounded-full border"
+    <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+      <h2 className="text-2xl font-semibold mb-4 text-center">Sign In</h2>
+
+      {/* Email */}
+      <label className="block mb-2 font-medium">Email:</label>
+      <input
+        type="email"
+        className="w-full p-2 border rounded-md mb-4"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      {/* Password */}
+      <label className="block mb-2 font-medium">Password:</label>
+      <input
+        type="password"
+        className="w-full p-2 border rounded-md mb-4"
+        placeholder="Enter your password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      {/* Role Selection */}
+      <label className="block mb-2 font-medium">Sign in as:</label>
+      <select
+        className="w-full p-2 border rounded-md mb-4"
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+      >
+        <option value="admin">Admin</option>
+        <option value="enumerator">Enumerator</option>
+      </select>
+
+      {/* Remember Me */}
+      <div className="flex items-center mb-4">
+        <input
+          type="checkbox"
+          className="mr-2"
+          checked={rememberMe}
+          onChange={() => setRememberMe(!rememberMe)}
         />
-
-        {/* Profile Info */}
-        <div className="flex-1 text-center md:text-left">
-          <h2 className="text-xl font-semibold">John Doe</h2>
-          <p className="text-gray-600">johndoe@example.com</p>
-          <p className="text-gray-600">+123 456 7890</p>
-        </div>
-
-        {/* Edit Icon */}
-        <button className="text-blue-500 hover:text-blue-700">
-          <FaEdit size={20} />
-        </button>
+        <label className="text-sm">Remember Me</label>
       </div>
 
-      {/* Metrics Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        {/* Total Sales Card */}
-        <div className="bg-white shadow-md rounded-lg p-4 text-center">
-          <h3 className="text-lg font-semibold">Total Data</h3>
-          <p className="text-2xl font-bold">₦1,150,000</p>
-        </div>
+      {/* Sign In Button */}
+      <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+        Sign In
+      </button>
 
-        {/* Total Commission Card */}
-        <div className="bg-white shadow-md rounded-lg p-4 text-center">
-          <h3 className="text-lg font-semibold">Total States</h3>
-          <p className="text-2xl font-bold">₦500,000</p>
-        </div>
-
-        {/* Total Enumerators Card */}
-        <div className="bg-white shadow-md rounded-lg p-4 text-center">
-          <h3 className="text-lg font-semibold">Total Enumerators</h3>
-          <p className="text-2xl font-bold">24</p>
-        </div>
-      </div>
+      {/* Forgot Password */}
+      <p className="text-center text-sm text-gray-600 mt-4">
+        Forgot password? <a href="#" className="text-blue-500">Reset here</a>
+      </p>
     </div>
   );
 }
