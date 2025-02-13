@@ -444,7 +444,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaPlayCircle } from "react-icons/fa";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Papa from "papaparse";
 import { saveAs } from "file-saver";
+import Image from "next/image";
 
 // Define the data structure
 interface FieldCoordinatorRecord {
@@ -123,7 +124,14 @@ export default function ListOfEnumerators() {
       {/* Only render the logo after hydration to prevent mismatch */}
       {isClient && (
         <div className="absolute top-0 right-0 p-4">
-          <img src="/digiplus.png" alt="Company Logo" className="h-12 w-auto" />
+          <Image
+            src="/digiplus.png"
+            alt="Company Logo"
+            width={120}
+            height={50}
+            priority
+          />
+          {/* <Image src="/digiplus.png" alt="Company Logo" className="h-12 w-auto" /> */}
         </div>
       )}
       <h1 className="text-2xl font-bold mb-4">Field Coordinators</h1>
