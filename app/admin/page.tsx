@@ -1,11 +1,26 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useState } from "react";
-import { FaEdit } from "react-icons/fa"; // Edit icon
+import { FaEdit } from "react-icons/fa";
+import {createUsers} from "@/services/apiService";
 
 export default function DashboardPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [email, setEmail] = useState("");
+  const [emailAddress, setEmail] = useState("");
   const [role, setRole] = useState("enumerator");
+  const [error, setError] = useState('');
+
+
+  const handleCreateUser = async () => {
+      const creatorRole = "admin";
+      try {
+        const data = await createUsers(emailAddress, role, creatorRole);
+        console.log('Login successful:', data);
+        // Handle successful login (e.g., redirect to dashboard)
+      } catch (error) {
+        setError('Login failed. Please check your credentials and try again.');
+      }
+    };
 
   return (
     <div className="p-6">
@@ -46,7 +61,7 @@ export default function DashboardPage() {
               type="email"
               className="w-full p-2 border rounded-md mb-4"
               placeholder="Enter email"
-              value={email}
+              value={emailAddress}
               onChange={(e) => setEmail(e.target.value)}
             />
 
@@ -58,7 +73,7 @@ export default function DashboardPage() {
               onChange={(e) => setRole(e.target.value)}
             >
               <option value="admin">Admin</option>
-              <option value="enumerator">Field Coordinator</option>
+              <option value="fieldCoordinator">Field Coordinator</option>
               <option value="enumerator">Enumerator</option>
             </select>
 
@@ -66,7 +81,7 @@ export default function DashboardPage() {
             <div className="flex justify-between">
               <button
                 className="bg-gray-500 text-white px-4 py-2 rounded"
-                onClick={() => setIsFormOpen(false)}
+                onClick={handleCreateUser}
               >
                 Cancel
               </button>

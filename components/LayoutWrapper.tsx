@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,6 +26,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       {!isAuthOrEnumeratorPage && <Sidebar />}
       <main className={`flex-1 p-5 ${!isAuthOrEnumeratorPage ? "md:ml-64" : "flex items-center justify-center min-h-screen bg-gray-100"}`}>
         {children}
+        <ToastContainer />
       </main>
     </div>
   );

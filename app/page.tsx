@@ -1,13 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 "use client";
-
 import { useState } from "react";
+import { login } from "@/services/apiService";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("enumerator");
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const data = await login(emailAddress, password);
+      console.log('Login successful:', data);
+      // Handle successful login (e.g., redirect to dashboard)
+    } catch (error) {
+      setError('Login failed. Please check your credentials and try again.');
+    }
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
@@ -19,8 +31,8 @@ export default function SignInPage() {
         type="email"
         className="w-full p-2 border rounded-md mb-4"
         placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={emailAddress}
+        onChange={(e) => setEmailAddress(e.target.value)}
       />
 
       {/* Password */}
@@ -56,7 +68,9 @@ export default function SignInPage() {
       </div>
 
       {/* Sign In Button */}
-      <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded w-full"
+        onClick={handleLogin}>
         Sign In
       </button>
 
