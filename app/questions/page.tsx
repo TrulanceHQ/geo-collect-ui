@@ -1,185 +1,4 @@
-// "use client";
-
-// import { useState } from "react";
-
-// export default function Questions() {
-//   const [isFormOpen, setIsFormOpen] = useState(false);
-//   const [title, setTitle] = useState("");
-//   const [subTitle, setSubTitle] = useState("");
-//   const [questions, setQuestions] = useState([
-//     { question: "", type: "multiple-choice", options: [""] },
-//   ]);
-//   const [mediaInstruction, setMediaInstruction] = useState("");
-//   const [mediaType, setMediaType] = useState("");
-
-//   // Function to add a new question
-//   const addQuestion = () => {
-//     setQuestions([...questions, { question: "", type: "multiple-choice", options: [""] }]);
-//   };
-
-//   // Function to handle question input change
-//   const handleQuestionChange = (index: number, value: string) => {
-//     const newQuestions = [...questions];
-//     newQuestions[index].question = value;
-//     setQuestions(newQuestions);
-//   };
-
-//   // Function to handle question type change
-//   const handleQuestionTypeChange = (index: number, value: string) => {
-//     const newQuestions = [...questions];
-//     newQuestions[index].type = value;
-//     if (value !== "text") newQuestions[index].options = [""]; // Reset options for new type
-//     setQuestions(newQuestions);
-//   };
-
-//   // Function to add an option for multiple-choice/single-choice
-//   const addOption = (index: number) => {
-//     const newQuestions = [...questions];
-//     newQuestions[index].options.push("");
-//     setQuestions(newQuestions);
-//   };
-
-//   // Function to handle input change for options
-//   const handleOptionChange = (qIndex: number, oIndex: number, value: string) => {
-//     const newQuestions = [...questions];
-//     newQuestions[qIndex].options[oIndex] = value;
-//     setQuestions(newQuestions);
-//   };
-
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-2xl font-bold mb-4">Survey Questions</h1>
-//       <button
-//         className="bg-blue-500 text-white px-4 py-2 rounded mb-6"
-//         onClick={() => setIsFormOpen(!isFormOpen)}
-//       >
-//         {isFormOpen ? "Close Form" : "Create New Survey"}
-//       </button>
-
-//       {isFormOpen && (
-//         <div className="bg-white shadow-md rounded-lg p-6 w-full md:w-2/3 lg:w-1/2 mx-auto">
-//           <h2 className="text-xl font-semibold mb-4">Create a New Survey</h2>
-
-//           {/* Survey Title */}
-//           <label className="block mb-2 font-medium">Survey Title:</label>
-//           <input
-//             type="text"
-//             className="w-full p-2 border rounded-md mb-4"
-//             placeholder="Enter survey title"
-//             value={title}
-//             onChange={(e) => setTitle(e.target.value)}
-//           />
-
-//           {/* Survey Sub-title */}
-//           <label className="block mb-2 font-medium">Survey Sub-title:</label>
-//           <input
-//             type="text"
-//             className="w-full p-2 border rounded-md mb-4"
-//             placeholder="Enter survey sub-title"
-//             value={subTitle}
-//             onChange={(e) => setSubTitle(e.target.value)}
-//           />
-
-//           {/* Questions Section */}
-//           {questions.map((q, qIndex) => (
-//             <div key={qIndex} className="border-b pb-4 mb-4">
-//               <label className="block mb-2 font-medium">Question {qIndex + 1}:</label>
-//               <input
-//                 type="text"
-//                 className="w-full p-2 border rounded-md mb-4"
-//                 placeholder="Enter question"
-//                 value={q.question}
-//                 onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
-//               />
-
-//               {/* Question Type */}
-//               <label className="block mb-2 font-medium">Question Type:</label>
-//               <select
-//                 className="w-full p-2 border rounded-md mb-4"
-//                 value={q.type}
-//                 onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value)}
-//               >
-//                 <option value="multiple-choice">Multiple Choice</option>
-//                 <option value="single-choice">Single Choice</option>
-//                 <option value="text">Text (Message Box)</option>
-//               </select>
-
-//               {/* Options for Multiple & Single Choice */}
-//               {(q.type === "multiple-choice" || q.type === "single-choice") && (
-//                 <div>
-//                   <label className="block mb-2 font-medium">Options:</label>
-//                   {q.options.map((option, oIndex) => (
-//                     <input
-//                       key={oIndex}
-//                       type="text"
-//                       className="w-full p-2 border rounded-md mb-2"
-//                       placeholder={`Option ${oIndex + 1}`}
-//                       value={option}
-//                       onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
-//                     />
-//                   ))}
-//                   <button
-//                     className="bg-green-500 text-white px-3 py-1 rounded mt-2"
-//                     onClick={() => addOption(qIndex)}
-//                   >
-//                     + Add Option
-//                   </button>
-//                 </div>
-//               )}
-
-//               {/* Textbox for Message Box */}
-//               {q.type === "text" && (
-//                 <textarea
-//                   className="w-full p-2 border rounded-md mt-2"
-//                   placeholder="User can enter a response here..."
-//                   disabled
-//                 />
-//               )}
-//             </div>
-//           ))}
-
-//           {/* Add Another Question */}
-//           <button className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full" onClick={addQuestion}>
-//             + Add Another Question
-//           </button>
-
-//           {/* Media Instruction Section (Always at the End) */}
-//           <div className="mt-4">
-//             <label className="block mb-2 font-medium">Media Instruction:</label>
-//             <input
-//               type="text"
-//               className="w-full p-2 border rounded-md mb-4"
-//               placeholder="Enter instruction like 'Take picture', 'Record video', or 'Record voice'"
-//               value={mediaInstruction}
-//               onChange={(e) => setMediaInstruction(e.target.value)}
-//             />
-
-//             {mediaInstruction && (
-//               <div>
-//                 <label className="block mb-2 font-medium">Select Media Type:</label>
-//                 <select
-//                   className="w-full p-2 border rounded-md mb-4"
-//                   value={mediaType}
-//                   onChange={(e) => setMediaType(e.target.value)}
-//                 >
-//                   <option value="">Select...</option>
-//                   <option value="audio">Audio</option>
-//                   <option value="video">Video</option>
-//                   <option value="picture">Picture</option>
-//                 </select>
-//               </div>
-//             )}
-//           </div>
-
-//           {/* Submit Button */}
-//           <button className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full">
-//             Submit Survey
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
+//Perfect working code
 
 "use client";
 
@@ -191,44 +10,78 @@ export default function Questions() {
   const [title, setTitle] = useState("");
   const [subTitle, setSubTitle] = useState("");
   const [questions, setQuestions] = useState([
-    { question: "", type: "multiple-choice", options: [""] },
+    {
+      question: "Question 1",
+      type: "likert-scale",
+      likertQuestions: [{ question: "", options: ["", "", "", "", ""] }],
+    },
   ]);
   const [mediaInstruction, setMediaInstruction] = useState("");
   const [mediaType, setMediaType] = useState("");
 
+  // Add a new main question
   const addQuestion = () => {
     setQuestions([
       ...questions,
-      { question: "", type: "multiple-choice", options: [""] },
+      {
+        question: `Question ${questions.length + 1}`,
+        type: "likert-scale",
+        likertQuestions: [{ question: "", options: ["", "", "", "", ""] }],
+      },
     ]);
   };
 
-  const handleQuestionChange = (index: number, value: string) => {
+  // Handle changing main question text
+  const handleMainQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
     newQuestions[index].question = value;
     setQuestions(newQuestions);
   };
 
-  const handleQuestionTypeChange = (index: number, value: string) => {
+  // Handle changing question type
+  const handleQuestionTypeChange = (index: number, type: string) => {
     const newQuestions = [...questions];
-    newQuestions[index].type = value;
-    if (value !== "text") newQuestions[index].options = [""];
+    newQuestions[index].type = type;
     setQuestions(newQuestions);
   };
 
-  const addOption = (index: number) => {
+  // Add a new Likert scale question under a main question
+  const addLikertQuestion = (qIndex: number) => {
     const newQuestions = [...questions];
-    newQuestions[index].options.push("");
+    newQuestions[qIndex].likertQuestions.push({
+      question: "",
+      options: ["", "", "", "", ""],
+    });
     setQuestions(newQuestions);
   };
 
+  // Handle changing Likert scale question text
+  const handleLikertQuestionChange = (
+    qIndex: number,
+    lIndex: number,
+    value: string
+  ) => {
+    const newQuestions = [...questions];
+    newQuestions[qIndex].likertQuestions[lIndex].question = value;
+    setQuestions(newQuestions);
+  };
+
+  // Handle changing Likert scale options
   const handleOptionChange = (
     qIndex: number,
+    lIndex: number,
     oIndex: number,
     value: string
   ) => {
     const newQuestions = [...questions];
-    newQuestions[qIndex].options[oIndex] = value;
+    newQuestions[qIndex].likertQuestions[lIndex].options[oIndex] = value;
+    setQuestions(newQuestions);
+  };
+
+  // Add another option for a Likert scale question
+  const addOption = (qIndex: number, lIndex: number) => {
+    const newQuestions = [...questions];
+    newQuestions[qIndex].likertQuestions[lIndex].options.push(""); // Add an empty option
     setQuestions(newQuestions);
   };
 
@@ -277,18 +130,21 @@ export default function Questions() {
 
           {questions.map((q, qIndex) => (
             <div key={qIndex} className="border-b pb-4 mb-4">
-              <label className="block mb-2 font-medium">
-                Question {qIndex + 1}:
-              </label>
+              {/* Main question */}
+              <label className="block mb-2 font-medium">{q.question}</label>
               <input
                 type="text"
                 className="w-full p-2 border rounded-md mb-4"
-                placeholder="Enter question"
                 value={q.question}
-                onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
+                onChange={(e) =>
+                  handleMainQuestionChange(qIndex, e.target.value)
+                }
               />
 
-              <label className="block mb-2 font-medium">Question Type:</label>
+              {/* Question Type Dropdown */}
+              <label className="block mb-2 font-medium">
+                Select Question Type:
+              </label>
               <select
                 className="w-full p-2 border rounded-md mb-4"
                 value={q.type}
@@ -296,83 +152,134 @@ export default function Questions() {
                   handleQuestionTypeChange(qIndex, e.target.value)
                 }
               >
+                <option value="likert-scale">Likert Scale</option>
                 <option value="multiple-choice">Multiple Choice</option>
                 <option value="single-choice">Single Choice</option>
-                <option value="text">Text (Message Box)</option>
+                <option value="text">Text</option>
               </select>
 
-              {(q.type === "multiple-choice" || q.type === "single-choice") && (
+              {/* Show Likert scale questions if selected */}
+              {q.type === "likert-scale" && (
                 <div>
-                  <label className="block mb-2 font-medium">Options:</label>
-                  {q.options.map((option, oIndex) => (
-                    <input
-                      key={oIndex}
-                      type="text"
-                      className="w-full p-2 border rounded-md mb-2"
-                      placeholder={`Option ${oIndex + 1}`}
-                      value={option}
-                      onChange={(e) =>
-                        handleOptionChange(qIndex, oIndex, e.target.value)
-                      }
-                    />
+                  {q.likertQuestions.map((likertQ, lIndex) => (
+                    <div key={lIndex} className="mb-4">
+                      <label className="block mb-2 font-medium">
+                        Likert Question {lIndex + 1}:
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border rounded-md mb-4"
+                        value={likertQ.question}
+                        onChange={(e) =>
+                          handleLikertQuestionChange(
+                            qIndex,
+                            lIndex,
+                            e.target.value
+                          )
+                        }
+                      />
+
+                      <label className="block mb-2 font-medium">
+                        Likert Scale Options:
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {likertQ.options.map((option, oIndex) => (
+                          <input
+                            key={oIndex}
+                            type="text"
+                            className="w-1/5 p-2 border rounded-md"
+                            value={option}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                qIndex,
+                                lIndex,
+                                oIndex,
+                                e.target.value
+                              )
+                            }
+                          />
+                        ))}
+                      </div>
+                      <button
+                        className="bg-green-500 text-white px-3 py-1 rounded mt-2"
+                        onClick={() => addOption(qIndex, lIndex)}
+                      >
+                        + Add Option
+                      </button>
+                    </div>
                   ))}
+
+                  {/* Button to add another Likert scale question */}
                   <button
-                    className="bg-green-500 text-white px-3 py-1 rounded mt-2"
-                    onClick={() => addOption(qIndex)}
+                    className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full"
+                    onClick={() => addLikertQuestion(qIndex)}
                   >
+                    + Add Another Likert Scale Question
+                  </button>
+                </div>
+              )}
+
+              {/* Additional question types (e.g., multiple choice, single choice) */}
+              {q.type === "multiple-choice" && (
+                <div>
+                  <label className="block mb-2 font-medium">
+                    Multiple Choice Options:
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md mb-2"
+                    placeholder="Option 1"
+                  />
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md mb-2"
+                    placeholder="Option 2"
+                  />
+                  <button className="bg-green-500 text-white px-3 py-1 rounded mt-2">
                     + Add Option
                   </button>
                 </div>
               )}
 
+              {q.type === "single-choice" && (
+                <div>
+                  <label className="block mb-2 font-medium">
+                    Single Choice Options:
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md mb-2"
+                    placeholder="Option 1"
+                  />
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md mb-2"
+                    placeholder="Option 2"
+                  />
+                </div>
+              )}
+
               {q.type === "text" && (
-                <textarea
-                  className="w-full p-2 border rounded-md mt-2"
-                  placeholder="User can enter a response here..."
-                  disabled
-                />
+                <div>
+                  <label className="block mb-2 font-medium">
+                    Text Response:
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Enter your answer"
+                    disabled
+                  />
+                </div>
               )}
             </div>
           ))}
 
           <button
-            className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full"
+            className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
             onClick={addQuestion}
           >
             + Add Another Question
-          </button>
-
-          <div className="mt-4">
-            <label className="block mb-2 font-medium">Media Instruction:</label>
-            <input
-              type="text"
-              className="w-full p-2 border rounded-md mb-4"
-              placeholder="Enter instruction like 'Take picture', 'Record video', or 'Record voice'"
-              value={mediaInstruction}
-              onChange={(e) => setMediaInstruction(e.target.value)}
-            />
-
-            {mediaInstruction && (
-              <div>
-                <label className="block mb-2 font-medium">
-                  Select Media Type:
-                </label>
-                <select
-                  className="w-full p-2 border rounded-md mb-4"
-                  value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value)}
-                >
-                  <option value="">Select...</option>
-                  <option value="audio">Audio</option>
-                  <option value="video">Video</option>
-                  <option value="picture">Picture</option>
-                </select>
-              </div>
-            )}
-          </div>
-
-          <button className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full">
-            Submit Survey
           </button>
         </div>
       )}
