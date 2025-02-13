@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -85,8 +84,18 @@ const enumeratorData: Record<number, FieldCoordinatorRecord[]> = {
 
 export default function ListOfEnumerators() {
   const fieldcoordinators = [
-    { id: 1, name: "Alice Johnson", email: "alice@example.com", phone: "+234 901 234 5678" },
-    { id: 2, name: "Bob Smith", email: "bob@example.com", phone: "+234 902 345 6789" },
+    {
+      id: 1,
+      name: "Alice Johnson",
+      email: "alice@example.com",
+      phone: "+234 901 234 5678",
+    },
+    {
+      id: 2,
+      name: "Bob Smith",
+      email: "bob@example.com",
+      phone: "+234 902 345 6789",
+    },
   ];
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -111,6 +120,12 @@ export default function ListOfEnumerators() {
 
   return (
     <div className="p-6">
+      {/* Only render the logo after hydration to prevent mismatch */}
+      {isClient && (
+        <div className="absolute top-0 right-0 p-4">
+          <img src="/digiplus.png" alt="Company Logo" className="h-12 w-auto" />
+        </div>
+      )}
       <h1 className="text-2xl font-bold mb-4">Field Coordinators</h1>
       <p className="text-gray-600 mb-6">Manage your field coordinators here.</p>
 
@@ -128,7 +143,10 @@ export default function ListOfEnumerators() {
           </thead>
           <tbody>
             {fieldcoordinators.map((fieldcoordinator) => (
-              <tr key={fieldcoordinator.id} className="border-b hover:bg-gray-50">
+              <tr
+                key={fieldcoordinator.id}
+                className="border-b hover:bg-gray-50"
+              >
                 <td className="p-3">{fieldcoordinator.id}</td>
                 <td className="p-3">{fieldcoordinator.name}</td>
                 <td className="p-3">{fieldcoordinator.email}</td>
@@ -136,7 +154,13 @@ export default function ListOfEnumerators() {
                 <td className="p-3 text-center">
                   <button
                     className="text-blue-500 hover:text-blue-700 mx-2"
-                    onClick={() => setSelectedId(fieldcoordinator.id === selectedId ? null : fieldcoordinator.id)}
+                    onClick={() =>
+                      setSelectedId(
+                        fieldcoordinator.id === selectedId
+                          ? null
+                          : fieldcoordinator.id
+                      )
+                    }
                   >
                     {selectedId === fieldcoordinator.id ? "Hide" : "View"}
                   </button>
@@ -158,7 +182,10 @@ export default function ListOfEnumerators() {
               <thead className="bg-gray-100 border-b">
                 <tr>
                   {Object.keys(enumeratorData[selectedId][0]).map((key) => (
-                    <th key={key} className="p-3 whitespace-nowrap text-gray-600">
+                    <th
+                      key={key}
+                      className="p-3 whitespace-nowrap text-gray-600"
+                    >
                       {key.charAt(0).toUpperCase() + key.slice(1)}
                     </th>
                   ))}
@@ -168,7 +195,9 @@ export default function ListOfEnumerators() {
                 {enumeratorData[selectedId].map((row, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
                     {Object.values(row).map((value, idx) => (
-                      <td key={idx} className="p-3 whitespace-nowrap">{value}</td>
+                      <td key={idx} className="p-3 whitespace-nowrap">
+                        {value}
+                      </td>
                     ))}
                   </tr>
                 ))}
@@ -190,4 +219,3 @@ export default function ListOfEnumerators() {
     </div>
   );
 }
-

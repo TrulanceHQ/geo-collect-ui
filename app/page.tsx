@@ -1,49 +1,96 @@
+// "use client"; // ✅ Forces client-side rendering
 
-"use client";
+// import { useEffect, useState } from "react";
+// import Image from "next/image";
 
-import { useState } from "react";
+// export default function SignInPage() {
+//   const [showLogo, setShowLogo] = useState(false);
+//   // const [timestamp, setTimestamp] = useState("");
+
+//   useEffect(() => {
+//     setShowLogo(true); // ✅ Ensures the logo appears AFTER hydration
+//     // setTimestamp(new Date().toLocaleString()); // ✅ Fix dynamic value
+//   }, []);
+
+//   return (
+//     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+//       {showLogo && (
+//         <div className="mb-6">
+//           <Image src="/digiplus.png" alt="Company Logo" width={150} height={150} priority />
+//         </div>
+//       )}
+
+//       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+//         <h2 className="text-2xl font-semibold mb-4 text-center">Sign In</h2>
+
+//         {/* Email */}
+//         <label className="block mb-2 font-medium">Email:</label>
+//         <input type="email" className="w-full p-2 border rounded-md mb-4" placeholder="Enter your email" />
+
+//         {/* Password */}
+//         <label className="block mb-2 font-medium">Password:</label>
+//         <input type="password" className="w-full p-2 border rounded-md mb-4" placeholder="Enter your password" />
+
+//         <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+//           Sign In
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+"use client"; // ✅ Forces client-side rendering
+
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("enumerator");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isClient, setIsClient] = useState(false); // Track hydration
+
+  useEffect(() => {
+    setIsClient(true); // ✅ Ensures consistency between SSR and client
+  }, []);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Sign In</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      {/* Logo - Rendered consistently on both SSR and client */}
+      <div className="mb-6">
+        {isClient ? (
+          <Image
+            src="/digiplus.png"
+            alt="Company Logo"
+            width={150}
+            height={150}
+            priority
+          />
+        ) : (
+          <div className="w-[150px] h-[150px] bg-gray-300 animate-pulse rounded-md"></div> // Placeholder to prevent layout shift
+        )}
+      </div>
 
-      {/* Email */}
-      <label className="block mb-2 font-medium">Email:</label>
-      <input
-        type="email"
-        className="w-full p-2 border rounded-md mb-4"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-semibold mb-4 text-center">Sign In</h2>
 
-      {/* Password */}
-      <label className="block mb-2 font-medium">Password:</label>
-      <input
-        type="password"
-        className="w-full p-2 border rounded-md mb-4"
-        placeholder="Enter your password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        {/* Email */}
+        <label className="block mb-2 font-medium">Email:</label>
+        <input
+          type="email"
+          className="w-full p-2 border rounded-md mb-4"
+          placeholder="Enter your email"
+        />
 
-    
+        {/* Password */}
+        <label className="block mb-2 font-medium">Password:</label>
+        <input
+          type="password"
+          className="w-full p-2 border rounded-md mb-4"
+          placeholder="Enter your password"
+        />
 
-      {/* Sign In Button */}
-      <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
-        Sign In
-      </button>
-
-      {/* Forgot Password */}
-      {/* <p className="text-center text-sm text-gray-600 mt-4">
-        Forgot password? <a href="#" className="text-blue-500">Reset here</a>
-      </p> */}
+        <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+          Sign In
+        </button>
+      </div>
     </div>
   );
 }
