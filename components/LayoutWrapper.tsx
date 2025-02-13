@@ -15,14 +15,14 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   if (!isMounted) return <div />; // Ensures hydration consistency
 
   // Define pages where the sidebar should be hidden
-  const hideSidebarOn = ["/", "/enumerators-flow"]; // Add enumerator page
+  const hideSidebarOn = ["/", "/enumerators-flow", "/field-coordinators-flow"]; // Add enumerator page
 
-  const isAuthOrEnumeratorPage = hideSidebarOn.includes(pathname);
+  const isAuthOrEnumeratororFieldCoord = hideSidebarOn.includes(pathname);
 
   return (
     <div className="flex flex-col md:flex-row">
-      {!isAuthOrEnumeratorPage && <Sidebar />}
-      <main className={`flex-1 p-5 ${!isAuthOrEnumeratorPage ? "md:ml-64" : "flex items-center justify-center min-h-screen bg-gray-100"}`}>
+      {!isAuthOrEnumeratororFieldCoord && <Sidebar />}
+      <main className={`flex-1 p-5 ${!isAuthOrEnumeratororFieldCoord ? "md:ml-64" : "flex items-center justify-center min-h-screen bg-gray-100"}`}>
         {children}
       </main>
     </div>

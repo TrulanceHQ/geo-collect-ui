@@ -33,27 +33,7 @@ export default function SignInPage() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      {/* Role Selection */}
-      <label className="block mb-2 font-medium">Sign in as:</label>
-      <select
-        className="w-full p-2 border rounded-md mb-4"
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-      >
-        <option value="admin">Admin</option>
-        <option value="enumerator">Enumerator</option>
-      </select>
-
-      {/* Remember Me */}
-      <div className="flex items-center mb-4">
-        <input
-          type="checkbox"
-          className="mr-2"
-          checked={rememberMe}
-          onChange={() => setRememberMe(!rememberMe)}
-        />
-        <label className="text-sm">Remember Me</label>
-      </div>
+    
 
       {/* Sign In Button */}
       <button className="bg-blue-500 text-white px-4 py-2 rounded w-full">
@@ -61,9 +41,9 @@ export default function SignInPage() {
       </button>
 
       {/* Forgot Password */}
-      <p className="text-center text-sm text-gray-600 mt-4">
+      {/* <p className="text-center text-sm text-gray-600 mt-4">
         Forgot password? <a href="#" className="text-blue-500">Reset here</a>
-      </p>
+      </p> */}
     </div>
   );
 }
