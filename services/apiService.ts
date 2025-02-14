@@ -11,19 +11,16 @@ export const login = async (emailAddress: string, password: string) => {
       emailAddress,
       password,
     });
-    toast.success("Login successful");
-    return response.data;
+    console.log(response.data);
+    if (response.data?.accessToken) {
+      toast.success("Login successful");
+      return response.data; 
+    } else {
+      throw new Error("Invalid response from server");
+    }
   } catch (error) {
     console.error("Error logging in:", error);
-    if (
-      axios.isAxiosError(error) &&
-      error.response &&
-      error.response.status === 401
-    ) {
-      toast.error("Invalid email or password");
-    } else {
-      toast.error("An error occurred. Please try again.");
-    }
+    toast.error("Invalid email or password");
     throw error;
   }
 };
