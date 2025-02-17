@@ -2,6 +2,7 @@
 
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { login } from "@/services/apiService";
 
 export default function SignInPage() {
@@ -10,12 +11,35 @@ export default function SignInPage() {
   const [role, setRole] = useState("enumerator");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter(); // Use Next.js router for navigation
 
   const handleLogin = async () => {
     try {
       const data = await login(emailAddress, password);
-      console.log("Login successful:", data);
-      // Handle successful login (e.g., redirect to dashboard)
+      console.log("Login Response:", data); // Debug API response
+
+      const role = data.role || data?.user?.role; // Handle possible nesting
+      console.log("Extracted Role:", role); // Debug role before redirecting
+
+      if (role) {
+        // Store user role in localStorage or a global state
+        localStorage.setItem("userRole", role);
+        switch (role) {
+          case "admin":
+            router.push("/admin");
+            break;
+          case "enumerator":
+            router.push("/enumerators-flow");
+            break;
+          case "fieldCoordinator":
+            router.push("/field-coordinators-flow");
+            break;
+          default:
+            router.push("/dashboard");
+        }
+      } else {
+        console.error("No role found in response.");
+      }
     } catch (error) {
       setError("Login failed. Please check your credentials and try again.");
     }
@@ -47,14 +71,14 @@ export default function SignInPage() {
 
       {/* Role Selection */}
       <label className="block mb-2 font-medium">Sign in as:</label>
-      <select
+      {/* <select
         className="w-full p-2 border rounded-md mb-4"
         value={role}
         onChange={(e) => setRole(e.target.value)}
       >
         <option value="admin">Admin</option>
         <option value="enumerator">Enumerator</option>
-      </select>
+      </select> */}
 
       {/* Remember Me */}
       <div className="flex items-center mb-4">

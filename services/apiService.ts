@@ -11,6 +11,7 @@ export const login = async (emailAddress: string, password: string) => {
       emailAddress,
       password,
     });
+    const userData = response.data; // Ensure it contains `role`
     toast.success("Login successful");
     return response.data;
   } catch (error) {
