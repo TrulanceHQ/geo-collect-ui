@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AuthProvider from "../services/AuthContext";
 
 export default function LayoutWrapper({
   children,
@@ -26,6 +27,7 @@ export default function LayoutWrapper({
   const isAuthOrEnumeratororFieldCoord = hideSidebarOn.includes(pathname);
 
   return (
+  <AuthProvider>
     <div className="flex flex-col md:flex-row">
       {!isAuthOrEnumeratororFieldCoord && <Sidebar />}
       <main
@@ -38,6 +40,7 @@ export default function LayoutWrapper({
         {children}
         <ToastContainer />
       </main>
-    </div>
+      </div>
+  </AuthProvider>
   );
 }

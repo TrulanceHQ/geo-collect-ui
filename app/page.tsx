@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/services/apiService";
+import { ClipLoader } from "react-spinners";
 
 export default function SignInPage() {
   const [emailAddress, setEmailAddress] = useState("");
@@ -12,18 +13,23 @@ export default function SignInPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter(); // Use Next.js router for navigation
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const data = await login(emailAddress, password);
       console.log("Login Response:", data); // Debug API response
 
       const role = data.role || data?.user?.role; // Handle possible nesting
       console.log("Extracted Role:", role); // Debug role before redirecting
+      const token = data.accessToken || data?.user?.accessToken; // Handle possible nesting
+      console.log("Extracted Role:", role); // Debug role before redirecting
 
       if (role) {
         // Store user role in localStorage or a global state
         localStorage.setItem("userRole", role);
+        localStorage.setItem("accessToken", token);
         switch (role) {
           case "admin":
             router.push("/admin");
@@ -42,6 +48,8 @@ export default function SignInPage() {
       }
     } catch (error) {
       setError("Login failed. Please check your credentials and try again.");
+    } finally {
+      setLoading(false); // Set loading to false when the request completes
     }
   };
 
@@ -80,6 +88,9 @@ export default function SignInPage() {
         <option value="enumerator">Enumerator</option>
       </select> */}
 
+      {/* Error Message */}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
       {/* Remember Me */}
       <div className="flex items-center mb-4">
         <input
@@ -90,6 +101,13 @@ export default function SignInPage() {
         />
         <label className="text-sm">Remember Me</label>
       </div>
+
+      {/* Spinner */}
+      {loading && (
+        <div className="flex justify-center mb-4">
+          <ClipLoader size={35} color={"#123abc"} loading={loading} />
+        </div>
+      )}
 
       {/* Sign In Button */}
       <button
