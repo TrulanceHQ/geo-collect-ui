@@ -447,6 +447,8 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
+import { createEnumerators } from "@/services/apiService";
+import { AxiosError } from "axios";
 
 // Dynamically import SurveyForm to avoid hydration errors
 const SurveyForm = dynamic(() => import("@/components/Survey"), {
@@ -460,6 +462,32 @@ export default function FieldCoordinatorsDashboard() {
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isDataVisible, setIsDataVisible] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleCreateEnum = async () => {
+    const creatorRole = "fieldCoordinator";
+    try {
+      const data = await createEnumerators(email, role, creatorRole);
+      console.log("User created successfully:", data); // Log the success
+      setSuccess("User created successfully!");
+      setIsFormOpen(false); // Close the form/modal after successful creation
+      setError(""); // Clear previous errors
+    } catch (error: unknown) {
+      // Check if the error is an AxiosError
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 403) {
+          setError("You do not have permission to create enum.");
+        } else {
+          setError("Failed to create enumerator. Please try again.");
+        }
+      } else {
+        // Handle other types of errors
+        setError("An unexpected error occurred.");
+      }
+      setSuccess("");
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -565,7 +593,10 @@ export default function FieldCoordinatorsDashboard() {
                 >
                   Cancel
                 </button>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded">
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  onClick={handleCreateEnum}
+                >
                   Submit
                 </button>
               </div>
