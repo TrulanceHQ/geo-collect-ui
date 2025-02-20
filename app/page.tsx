@@ -2,9 +2,9 @@
 
 "use client";
 import { useState } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { login } from "@/services/apiService";
-import { ClipLoader } from 'react-spinners'; 
+import { ClipLoader } from "react-spinners";
 
 export default function SignInPage() {
   const [emailAddress, setEmailAddress] = useState("");
@@ -12,24 +12,40 @@ export default function SignInPage() {
   const [role, setRole] = useState("enumerator");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter(); // Use Next.js router for navigation
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async () => {
-    setLoading(true); 
+    setLoading(true);
     try {
-      const { accessToken, user } = await login(emailAddress, password);
-      console.log('Login successful:', { accessToken, user });
+      const data = await login(emailAddress, password);
+      console.log("Login Response:", data); // Debug API response
 
-      localStorage.setItem('accessToken', accessToken);
-      console.log(user)
-      if (user.role === 'admin') {
-        router.push('/admin');
-      } else if (user.role === 'fieldCoordinator') {
-        router.push('/field-coordinators-flow');
-      } else (
-        router.push('/enumerators-flow')
-      )
+      const role = data.role || data?.user?.role; // Handle possible nesting
+      console.log("Extracted Role:", role); // Debug role before redirecting
+      const token = data.accessToken || data?.user?.accessToken; // Handle possible nesting
+      console.log("Extracted Role:", role); // Debug role before redirecting
+
+      if (role) {
+        // Store user role in localStorage or a global state
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("accessToken", token);
+        switch (role) {
+          case "admin":
+            router.push("/admin");
+            break;
+          case "enumerator":
+            router.push("/enumerators-flow");
+            break;
+          case "fieldCoordinator":
+            router.push("/field-coordinators-flow");
+            break;
+          default:
+            router.push("/dashboard");
+        }
+      } else {
+        console.error("No role found in response.");
+      }
     } catch (error) {
       setError("Login failed. Please check your credentials and try again.");
     } finally {
@@ -63,17 +79,16 @@ export default function SignInPage() {
 
       {/* Role Selection */}
       <label className="block mb-2 font-medium">Sign in as:</label>
-      <select
+      {/* <select
         className="w-full p-2 border rounded-md mb-4"
         value={role}
         onChange={(e) => setRole(e.target.value)}
       >
         <option value="admin">Admin</option>
         <option value="enumerator">Enumerator</option>
-        <option value="fieldCoordinator">Field Coordinator</option>
-      </select>
+      </select> */}
 
-            {/* Error Message */}
+      {/* Error Message */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {/* Remember Me */}
@@ -87,7 +102,7 @@ export default function SignInPage() {
         <label className="text-sm">Remember Me</label>
       </div>
 
-            {/* Spinner */}
+      {/* Spinner */}
       {loading && (
         <div className="flex justify-center mb-4">
           <ClipLoader size={35} color={"#123abc"} loading={loading} />
