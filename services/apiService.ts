@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // Replace with your API base URL
 
 export const login = async (emailAddress: string, password: string) => {
@@ -72,21 +73,6 @@ export const createUsers = async (
   }
 };
 
-// const getFieldCoordinatorId = () => {
-//   const token = localStorage.getItem("accessToken");
-
-//   if (!token) {
-//     throw new Error("No token found");
-//   }
-
-//   const decodedToken: any = jwtDecode(token); // Decoding the token
-
-//   return decodedToken?.fieldCoordinatorId; // Assuming `fieldCoordinatorId` is in the token's payload
-// };
-
-// const fieldCoordinatorId = getFieldCoordinatorId();
-// console.log("Field Coordinator ID:", fieldCoordinatorId); // This will give the fieldCoordinatorId
-
 export const createEnumerators = async (
   emailAddress: string,
   role: string,
@@ -100,8 +86,6 @@ export const createEnumerators = async (
     if (!token) {
       throw new Error("No token found");
     }
-
-    // const fieldCoordinatorId = getFieldCoordinatorId(); // Get the ID from the token
 
     // Dynamically retrieve the selectedState for fieldCoordinator
     const getUserState = () => {
@@ -200,7 +184,8 @@ export const submitSurvey = async (surveyData: any) => {
     }
 
     const response = await axios.post(
-      `http://localhost:5000/admin/questions/create`,
+      `${API_BASE_URL}/create`,
+      // `${API_BASE_URL}/admin/questions/create`,
       surveyData,
       {
         headers: {
@@ -234,7 +219,7 @@ export const createState = async (
     // console.log("Sending request payload:", JSON.stringify(payload, null, 2));
     // Make API request to create state
     const response = await axios.post(
-      `http://localhost:5000/api/v1/admin/create-state`, // Ensure the endpoint is correct
+      `${API_BASE_URL}/create-state`, // Ensure the endpoint is correct
 
       payload,
       {
@@ -293,14 +278,11 @@ export const fetchTotalStates = async (): Promise<StateResponse> => {
     }
 
     // console.log("Token:", token); // Debug token retrieval
-    const response = await axios.get(
-      "http://localhost:5000/api/v1/admin/view-states",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include token in request
-        },
-      }
-    );
+    const response = await axios.get(`${API_BASE_URL}/view-states`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Include token in request
+      },
+    });
     console.log("States Response:", response.data); // Debug API response
 
     // Ensure response format is correct
