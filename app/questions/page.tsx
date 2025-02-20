@@ -42,6 +42,10 @@ export default function Questions() {
   const [isSubmitting, setIsSubmitting] = useState(false); // New state to track submission
   const [isAutoSaving, setIsAutoSaving] = useState(false); // State to track auto-saving status
 
+  // {
+  //   isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
+  // }
+
   {
     isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
   }

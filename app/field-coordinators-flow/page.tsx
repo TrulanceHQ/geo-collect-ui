@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
 import { createEnumerators } from "@/services/apiService";

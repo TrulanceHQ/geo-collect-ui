@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import {
-  createUsers,
-  createState,
+  // createUsers,
+  // createState,
   fetchTotalStates,
   fetchUsersPerRole,
 } from "@/services/apiService"; // Make sure to add createState API
@@ -88,7 +88,7 @@ export default function DashboardPage() {
       return;
     }
 
-    const creatorRole = "admin";
+    // const creatorRole = "admin";
     try {
       // const data = await createState(stateName, creatorRole);
       // console.log("States created successfully:", data);
