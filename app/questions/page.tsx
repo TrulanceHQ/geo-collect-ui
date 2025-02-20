@@ -301,6 +301,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 interface LikertQuestion {
   question: string;
@@ -512,7 +513,7 @@ export default function Questions() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/admin/questions/create",
+        "http://localhost:3001/admin/questions/create",
         {
           method: "POST",
           headers: {
@@ -531,10 +532,10 @@ export default function Questions() {
 
       const data = await response.json();
       console.log("Survey submitted successfully:", data);
-      alert("Survey submitted successfully!");
+      toast.success("Survey submitted successfully!");
     } catch (error) {
       console.error("Error submitting survey:", error);
-      alert("An error occurred while submitting the survey.");
+      toast.error("An error occurred while submitting the survey.");
     }
   };
 

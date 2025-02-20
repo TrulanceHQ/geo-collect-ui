@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -106,17 +107,6 @@ export const createEnumerators = async (
   }
 };
 
-export const fetchQuestionnaires = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/enumerator/questions/all`);
-    // console.log("response", response);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-    throw error;
-  }
-};
-
 // Add more API functions as needed
 
 // export const createSurvey = async (
@@ -151,7 +141,8 @@ export const submitSurvey = async (surveyData: any) => {
     }
 
     const response = await axios.post(
-      `http://localhost:5000/admin/questions/create`,
+      `http://localhost:3001/admin/questions/create`,
+      // `${API_BASE_URL}/enumerator/survey/all`,
       surveyData,
       {
         headers: {
@@ -162,9 +153,10 @@ export const submitSurvey = async (surveyData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
+    console.log("Request payload:", response.data); 
     return response.data;
   } catch (error: any) {
-    console.error("Error submitting survey:", error);
+    console.log("Error submitting survey:", error);
     toast.error(error.response?.data?.message || "Failed to submit survey");
     throw error;
   }
@@ -207,3 +199,46 @@ export const createState = async (
     throw error;
   }
 };
+
+export const fetchQuestionnaires = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/enumerator/survey/all`);
+    // const surveyId = response.data?.[0]?.id; 
+
+    return { surveys: response.data }; 
+    // return response.data;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    throw error;
+  }
+};
+
+
+export const submitQuestionnaire = async (questionnaireData: any) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    // console.log("Token:", token);
+    // console.log("Questionnaire Data:", questionnaireData);
+    if (!token) {
+      throw new Error("Unauthorized: No access token found");
+    }
+    const response = await axios.post(
+      `${API_BASE_URL}/enumerator/survey/submit`,
+      questionnaireData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    toast.success("Survey submitted successfully!");
+    console.log("Request payload:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.log("Error submitting survey:", error.response?.data?.message);
+    toast.error(error.response?.data?.message || "Failed to submit survey");
+    throw error;
+  }
+}

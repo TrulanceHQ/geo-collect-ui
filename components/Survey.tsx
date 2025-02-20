@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchQuestionnaires } from "@/services/apiService";
+import { fetchQuestionnaires, submitQuestionnaire } from "@/services/apiService";
 import SubmissionSuccessModal from "./SubmissionSuccessModal";
 
 interface SurveyFormProps {
@@ -10,7 +10,9 @@ interface SurveyFormProps {
 
 export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [surveyId, setSurveyId] = useState<string | null>(null);
   interface SurveyData {
+    _id: string;
     title: string;
     subtitle: string;
     questions: {
@@ -18,7 +20,7 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
       type: string;
       options: string[];
       _id: string;
-      likertQuestions: string[];
+      likertQuestions: { question: string; options: string[] }[];
     }[];
   }
 
@@ -32,8 +34,11 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
     if (isOpen) {
       setLoading(true);
       fetchQuestionnaires()
-        .then((data) => {
-          setSurveyData(data[0]);
+        .then(({ surveys }) => {
+          if (surveys?.length > 0) {
+            setSurveyData(surveys[0]);
+            setSurveyId(surveys[0]._id);
+          }
           setLoading(false);
         })
         .catch((error) => {
@@ -41,7 +46,7 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
           setLoading(false);
         });
     }
-  }, [isOpen]);
+  }, [isOpen, surveyId]);
 
   const questions = surveyData?.questions || [];
 
@@ -65,17 +70,23 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting responses:", responses);
-    setShowSuccessModal(true);
-    // try {
-    //   await axios.post(`${API_BASE_URL}/submit-survey`, { responses });
-    //   alert("Survey submitted successfully!");
-    //   onClose(); // Close modal after submission
-    // } catch (error) {
-    //   console.error("Error submitting survey:", error);
-    //   alert("Failed to submit survey. Please try again.");
-    // }
+    setLoading(true);
+    try {
+      const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
+        questionId,
+        answer,
+      }));
+      const payload = { responses: formattedResponses, surveyId };
+
+      await submitQuestionnaire(payload);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Submission failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   if (!isOpen) return null;
 
@@ -153,30 +164,31 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
                         />
                       )}
 
-                      {questions[currentIndex].type === "likert-scale" && (
-                        <div className="space-y-4">
-                          {questions[currentIndex].likertQuestions.map((likertQ: string, idx: number) => (
-                            <div key={idx} className="flex flex-col">
-                              <span className="font-medium">{likertQ}</span>
-                              <div className="flex flex-wrap justify-between mt-2 gap-2">
-                                {questions[currentIndex].options.map((option: string, optionIdx: number) => (
-                                  <label key={optionIdx} className="flex flex-col items-center">
-                                    <input
-                                      type="radio"
-                                      name={`${questions[currentIndex]._id}-${idx}`}
-                                      value={option}
-                                      checked={responses[`${questions[currentIndex]._id}-${idx}`] === option}
-                                      onChange={() => handleResponseChange(`${questions[currentIndex]._id}-${idx}`, option)}
-                                      className="w-4 h-4"
-                                    />
-                                    <span className="text-sm">{option}</span>
-                                  </label>
-                                ))}
+                        {questions[currentIndex].type === "likert-scale" && (
+                          <div className="space-y-4">
+                            {questions[currentIndex].likertQuestions.map((likertQ, idx) => (
+                              <div key={idx} className="flex flex-col">
+                                <span className="font-medium">{likertQ.question}</span>
+                                <div className="flex flex-wrap justify-between mt-2 gap-2">
+                                  {likertQ.options.map((option: string, optionIdx: number) => (
+                                    <label key={optionIdx} className="flex flex-col items-center">
+                                      <input
+                                        type="radio"
+                                        name={`${questions[currentIndex]._id}-${idx}`}
+                                        value={option}
+                                        checked={responses[`${questions[currentIndex]._id}-${idx}`] === option}
+                                        onChange={() => handleResponseChange(`${questions[currentIndex]._id}-${idx}`, option)}
+                                        className="w-4 h-4"
+                                      />
+                                      <span className="text-sm">{option}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                            ))}
+                          </div>
+                        )}
+
                     </div>
                   </motion.div>
                 )}
