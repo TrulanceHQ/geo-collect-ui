@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 
@@ -42,7 +42,12 @@ export default function Questions() {
   const [isSubmitting, setIsSubmitting] = useState(false); // New state to track submission
   const [isAutoSaving, setIsAutoSaving] = useState(false); // State to track auto-saving status
 
-  let typingTimeout: NodeJS.Timeout;
+  {
+    isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
+  }
+
+  // let typingTimeout: NodeJS.Timeout;
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Save form data to localStorage
   const saveFormAsDraft = () => {
@@ -56,15 +61,27 @@ export default function Questions() {
   };
 
   const handleTyping = () => {
-    clearTimeout(typingTimeout); // Clear previous timeout
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
 
-    // Set a new timeout to save after a delay (e.g., 1 second of idle time)
-    typingTimeout = setTimeout(() => {
-      setIsAutoSaving(true); // Show the "Auto-saving..." indicator
-      saveFormAsDraft(); // Auto-save after pause
-      setIsAutoSaving(false); // Hide the "Auto-saving..." indicator
-    }, 1000); // Adjust the debounce time as needed
+    typingTimeout.current = setTimeout(() => {
+      setIsAutoSaving(true);
+      saveFormAsDraft();
+      setTimeout(() => setIsAutoSaving(false), 500); // Add delay for UX
+    }, 1000);
   };
+
+  // const handleTyping = () => {
+  //   clearTimeout(typingTimeout); // Clear previous timeout
+
+  //   //test
+
+  //   // Set a new timeout to save after a delay (e.g., 1 second of idle time)
+  //   typingTimeout = setTimeout(() => {
+  //     setIsAutoSaving(true); // Show the "Auto-saving..." indicator
+  //     saveFormAsDraft(); // Auto-save after pause
+  //     setIsAutoSaving(false); // Hide the "Auto-saving..." indicator
+  //   }, 1000); // Adjust the debounce time as needed
+  // };
 
   // Load saved form data from localStorage
   const loadFormFromDraft = () => {
@@ -211,12 +228,12 @@ export default function Questions() {
     setQuestions(newQuestions);
   };
 
-  // Remove a question
-  const removeQuestion = (qIndex: number) => {
-    const newQuestions = [...questions];
-    newQuestions.splice(qIndex, 1); // Remove the question at the specified index
-    setQuestions(newQuestions);
-  };
+  // // Remove a question
+  // const removeQuestion = (qIndex: number) => {
+  //   const newQuestions = [...questions];
+  //   newQuestions.splice(qIndex, 1); // Remove the question at the specified index
+  //   setQuestions(newQuestions);
+  // };
 
   const [allowAudio, setAllowAudio] = useState(false);
   const [allowVideo, setAllowVideo] = useState(false);

@@ -56,14 +56,14 @@ export default function DashboardPage() {
   const [stateSuccess, setStateSuccess] = useState(""); // State success message
 
   const handleCreateUser = async () => {
-    const creatorRole = "admin";
+    // const creatorRole = "admin";
     try {
-      const data = await createUsers(
-        emailAddress,
-        role,
-        creatorRole,
-        selectedState
-      );
+      // const data = await createUsers(
+      //   emailAddress,
+      //   role,
+      //   creatorRole,
+      //   selectedState
+      // );
       // console.log("User created successfully:", data);
       setSuccess("User created successfully!");
       setIsFormOpen(false);
@@ -90,7 +90,7 @@ export default function DashboardPage() {
 
     const creatorRole = "admin";
     try {
-      const data = await createState(stateName, creatorRole);
+      // const data = await createState(stateName, creatorRole);
       // console.log("States created successfully:", data);
       setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);

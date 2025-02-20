@@ -8,19 +8,26 @@ import { createEnumerators } from "@/services/apiService";
 import { AxiosError } from "axios";
 
 // Dynamically import SurveyForm to avoid hydration errors
-const SurveyForm = dynamic(() => import("@/components/Survey"), {
-  ssr: false, // Prevents SSR, ensuring it only loads on the client
-});
+// const SurveyForm = dynamic(() => import("@/components/Survey"), {
+//   ssr: false, // Prevents SSR, ensuring it only loads on the client
+// });
 
 export default function FieldCoordinatorsDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("enumerator");
-  const [isSurveyOpen, setIsSurveyOpen] = useState(false);
+  // const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isDataVisible, setIsDataVisible] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  {
+    error && <p className="text-red-500">{error}</p>;
+  }
+  {
+    success && <p className="text-green-500">{success}</p>;
+  }
 
   // fetchTotalStates
   const handleCreateEnum = async () => {
