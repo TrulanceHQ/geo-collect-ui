@@ -46,9 +46,10 @@ export default function Questions() {
   //   isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
   // }
 
-  {
-    isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
-  }
+  // {
+  //   isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
+  // }
+  {isAutoSaving && <p className="text-gray-500">Auto-saving...</p>}
 
   // let typingTimeout: NodeJS.Timeout;
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
