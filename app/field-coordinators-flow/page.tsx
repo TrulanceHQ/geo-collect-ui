@@ -22,8 +22,8 @@ export default function FieldCoordinatorsDashboard() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  {error && <p className="text-red-500">{error}</p>}
-  {success && <p className="text-green-500">{success}</p>}
+  error && <p className="text-red-500">{error}</p>
+  success && <p className="text-green-500">{success}</p>
 
   // fetchTotalStates
   const handleCreateEnum = async () => {
