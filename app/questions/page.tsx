@@ -1,23 +1,76 @@
-// //Perfect working code
+// //working above
 
 // "use client";
-
 // import { useState } from "react";
 // import Image from "next/image";
+// import { toast } from "react-toastify";
+
+// interface LikertQuestion {
+//   question: string;
+//   options: string[];
+// }
+
+// // interface Question {
+// //   question: string;
+// //   type: "likert-scale" | "multiple-choice" | "single-choice" | "text";
+// //   options: string[];
+// //   likertQuestions: LikertQuestion[];
+// // }
+
+// interface Question {
+//   question: string;
+//   type:
+//     | "likert-scale"
+//     | "multiple-choice"
+//     | "single-choice"
+//     | "text"
+//     | "record-audio"
+//     | "record-video"
+//     | "take-picture";
+//   options: string[];
+//   likertQuestions: LikertQuestion[];
+// }
+// //new
+// // interface Question {
+// //   question: string;
+// //   type: "likert-scale" | "multiple-choice" | "single-choice" | "text" | "record-audio" | "record-video" | "take-picture";
+// //   options: string[];
+// //   likertQuestions: LikertQuestion[];
+// //   requiresMedia?: boolean;
+// // }
+
+// //newest
+// // interface Question {
+// //   question: string;
+// //   type:
+// //     | "likert-scale"
+// //     | "multiple-choice"
+// //     | "single-choice"
+// //     | "text"
+// //     | "audio"
+// //     | "video"
+// //     | "image";
+// //   options: string[];
+// //   likertQuestions: LikertQuestion[];
+// //   allowAudio?: boolean;
+// //   allowVideo?: boolean;
+// //   allowImage?: boolean;
+// // }
 
 // export default function Questions() {
 //   const [isFormOpen, setIsFormOpen] = useState(false);
 //   const [title, setTitle] = useState("");
-//   const [subTitle, setSubTitle] = useState("");
-//   const [questions, setQuestions] = useState([
+//   const [subtitle, setSubtitle] = useState("");
+//   const [questions, setQuestions] = useState<Question[]>([
 //     {
 //       question: "Question 1",
 //       type: "likert-scale",
-//       likertQuestions: [{ question: "", options: ["", "", "", "", ""] }],
+//       options: [],
+//       likertQuestions: [],
 //     },
 //   ]);
-//   const [mediaInstruction, setMediaInstruction] = useState("");
-//   const [mediaType, setMediaType] = useState("");
+//   //   const [mediaInstruction, setMediaInstruction] = useState("");
+//   //   const [mediaType, setMediaType] = useState("");
 
 //   // Add a new main question
 //   const addQuestion = () => {
@@ -25,8 +78,9 @@
 //       ...questions,
 //       {
 //         question: `Question ${questions.length + 1}`,
-//         type: "likert-scale",
-//         likertQuestions: [{ question: "", options: ["", "", "", "", ""] }],
+//         type: "likert-scale", // default question type can be any, e.g., likert-scale
+//         options: [],
+//         likertQuestions: [],
 //       },
 //     ]);
 //   };
@@ -38,10 +92,48 @@
 //     setQuestions(newQuestions);
 //   };
 
-//   // Handle changing question type
-//   const handleQuestionTypeChange = (index: number, type: string) => {
+//   const handleQuestionTypeChange = (
+//     index: number,
+//     type:
+//       | "likert-scale"
+//       | "multiple-choice"
+//       | "single-choice"
+//       | "text"
+//       | "record-audio"
+//       | "record-video"
+//       | "take-picture"
+//   ) => {
 //     const newQuestions = [...questions];
 //     newQuestions[index].type = type;
+
+//     // Reset media flags
+//     setAllowAudio(false);
+//     setAllowVideo(false);
+//     setAllowImage(false);
+
+//     // Update based on selection
+//     if (type === "record-audio") {
+//       setAllowAudio(true);
+//     } else if (type === "record-video") {
+//       setAllowVideo(true);
+//     } else if (type === "take-picture") {
+//       setAllowImage(true);
+//     }
+
+//     // Ensure only relevant fields are retained
+//     if (type === "likert-scale") {
+//       newQuestions[index].options = [];
+//       newQuestions[index].likertQuestions = [
+//         { question: "", options: ["", "", "", "", ""] },
+//       ];
+//     } else if (type === "multiple-choice" || type === "single-choice") {
+//       newQuestions[index].likertQuestions = [];
+//       newQuestions[index].options = ["", ""];
+//     } else {
+//       newQuestions[index].likertQuestions = [];
+//       newQuestions[index].options = [];
+//     }
+
 //     setQuestions(newQuestions);
 //   };
 
@@ -69,20 +161,84 @@
 //   // Handle changing Likert scale options
 //   const handleOptionChange = (
 //     qIndex: number,
-//     lIndex: number,
+//     lIndex: number | null,
 //     oIndex: number,
 //     value: string
 //   ) => {
 //     const newQuestions = [...questions];
-//     newQuestions[qIndex].likertQuestions[lIndex].options[oIndex] = value;
+//     if (lIndex !== null) {
+//       newQuestions[qIndex].likertQuestions[lIndex].options[oIndex] = value;
+//     } else {
+//       newQuestions[qIndex].options[oIndex] = value;
+//     }
 //     setQuestions(newQuestions);
 //   };
 
 //   // Add another option for a Likert scale question
-//   const addOption = (qIndex: number, lIndex: number) => {
+//   const addOption = (qIndex: number, lIndex: number | null) => {
 //     const newQuestions = [...questions];
-//     newQuestions[qIndex].likertQuestions[lIndex].options.push(""); // Add an empty option
+//     if (lIndex !== null) {
+//       newQuestions[qIndex].likertQuestions[lIndex].options.push(""); // Add an empty option for Likert scale
+//     } else {
+//       newQuestions[qIndex].options.push(""); // Add an empty option for other types
+//     }
 //     setQuestions(newQuestions);
+//   };
+
+//   const [allowAudio, setAllowAudio] = useState(false);
+//   const [allowVideo, setAllowVideo] = useState(false);
+//   const [allowImage, setAllowImage] = useState(false);
+
+//   // POST request to submit the survey data
+//   const handleSubmitSurvey = async () => {
+//     const userRole = localStorage.getItem("userRole");
+//     if (userRole !== "admin") {
+//       alert("You are not authorized to perform this action.");
+//       return;
+//     }
+
+//     const token = localStorage.getItem("accessToken");
+//     if (!token) {
+//       alert("Access token is missing.");
+//       return;
+//     }
+//     const surveyData = {
+//       title,
+//       subtitle,
+//       questions,
+//       //   mediaInstruction,
+//       //   mediaType,
+//       allowAudio, // Now included at the survey level
+//       allowVideo, // Now included at the survey level
+//       allowImage, // Now included at the survey level
+//     };
+
+//     try {
+//       const response = await fetch(
+//         "http://localhost:5000/admin/questions/create",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${token}`,
+//           },
+//           body: JSON.stringify(surveyData),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         alert(`Error: ${errorData.message}`);
+//         return;
+//       }
+
+//       const data = await response.json();
+//       console.log("Survey submitted successfully:", data);
+//       toast("Survey submitted successfully!");
+//     } catch (error) {
+//       console.error("Error submitting survey:", error);
+//       alert("An error occurred while submitting the survey.");
+//     }
 //   };
 
 //   return (
@@ -100,7 +256,7 @@
 
 //       <h1 className="text-2xl font-bold mb-4">Survey Questions</h1>
 //       <button
-//         className="bg-blue-500 text-white px-4 py-2 rounded mb-6"
+//         className="bg-gray-800 text-white px-4 py-2 rounded mb-6"
 //         onClick={() => setIsFormOpen(!isFormOpen)}
 //       >
 //         {isFormOpen ? "Close Form" : "Create New Survey"}
@@ -124,8 +280,8 @@
 //             type="text"
 //             className="w-full p-2 border rounded-md mb-4"
 //             placeholder="Enter survey sub-title"
-//             value={subTitle}
-//             onChange={(e) => setSubTitle(e.target.value)}
+//             value={subtitle}
+//             onChange={(e) => setSubtitle(e.target.value)}
 //           />
 
 //           {questions.map((q, qIndex) => (
@@ -149,13 +305,23 @@
 //                 className="w-full p-2 border rounded-md mb-4"
 //                 value={q.type}
 //                 onChange={(e) =>
-//                   handleQuestionTypeChange(qIndex, e.target.value)
+//                   handleQuestionTypeChange(
+//                     qIndex,
+//                     e.target.value as
+//                       | "likert-scale"
+//                       | "multiple-choice"
+//                       | "single-choice"
+//                       | "text"
+//                   )
 //                 }
 //               >
 //                 <option value="likert-scale">Likert Scale</option>
 //                 <option value="multiple-choice">Multiple Choice</option>
 //                 <option value="single-choice">Single Choice</option>
 //                 <option value="text">Text</option>
+//                 <option value="record-audio">Record Audio</option>
+//                 <option value="record-video">Record Video</option>
+//                 <option value="take-picture">Take Picture</option>
 //               </select>
 
 //               {/* Show Likert scale questions if selected */}
@@ -208,8 +374,6 @@
 //                       </button>
 //                     </div>
 //                   ))}
-
-//                   {/* Button to add another Likert scale question */}
 //                   <button
 //                     className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full"
 //                     onClick={() => addLikertQuestion(qIndex)}
@@ -219,46 +383,30 @@
 //                 </div>
 //               )}
 
-//               {/* Additional question types (e.g., multiple choice, single choice) */}
-//               {q.type === "multiple-choice" && (
+//               {/* Show Multiple-Choice or Single-Choice */}
+//               {(q.type === "multiple-choice" || q.type === "single-choice") && (
 //                 <div>
 //                   <label className="block mb-2 font-medium">
-//                     Multiple Choice Options:
+//                     {q.type === "multiple-choice"
+//                       ? "Multiple Choice"
+//                       : "Single Choice"}{" "}
+//                     Options:
 //                   </label>
-//                   <input
-//                     type="text"
-//                     className="w-full p-2 border rounded-md mb-2"
-//                     placeholder="Option 1"
-//                   />
-//                   <input
-//                     type="text"
-//                     className="w-full p-2 border rounded-md mb-2"
-//                     placeholder="Option 2"
-//                   />
-//                   <button className="bg-green-500 text-white px-3 py-1 rounded mt-2">
-//                     + Add Option
-//                   </button>
+//                   {q.options.map((option, oIndex) => (
+//                     <input
+//                       key={oIndex}
+//                       type="text"
+//                       className="w-full p-2 border rounded-md mb-2"
+//                       value={option}
+//                       onChange={(e) =>
+//                         handleOptionChange(qIndex, null, oIndex, e.target.value)
+//                       }
+//                     />
+//                   ))}
 //                 </div>
 //               )}
 
-//               {q.type === "single-choice" && (
-//                 <div>
-//                   <label className="block mb-2 font-medium">
-//                     Single Choice Options:
-//                   </label>
-//                   <input
-//                     type="text"
-//                     className="w-full p-2 border rounded-md mb-2"
-//                     placeholder="Option 1"
-//                   />
-//                   <input
-//                     type="text"
-//                     className="w-full p-2 border rounded-md mb-2"
-//                     placeholder="Option 2"
-//                   />
-//                 </div>
-//               )}
-
+//               {/* Show Text input for Text Question */}
 //               {q.type === "text" && (
 //                 <div>
 //                   <label className="block mb-2 font-medium">
@@ -276,17 +424,16 @@
 //           ))}
 
 //           <button
-//             className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
+//             className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
 //             onClick={addQuestion}
 //           >
 //             + Add Another Question
 //           </button>
+
+//           {/* Submit Button */}
 //           <button
-//             className="bg-green-600 text-white px-4 py-2 rounded mt-4 w-full"
-//             onClick={() => {
-//               // Your submit logic goes here
-//               console.log("Form submitted");
-//             }}
+//             className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
+//             onClick={handleSubmitSurvey}
 //           >
 //             Submit Survey
 //           </button>
@@ -296,11 +443,10 @@
 //   );
 // }
 
-//working above
-
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 interface LikertQuestion {
   question: string;
@@ -369,6 +515,59 @@ export default function Questions() {
   //   const [mediaInstruction, setMediaInstruction] = useState("");
   //   const [mediaType, setMediaType] = useState("");
 
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state to track submission
+  const [isAutoSaving, setIsAutoSaving] = useState(false); // State to track auto-saving status
+
+  let typingTimeout: NodeJS.Timeout;
+
+  // Save form data to localStorage
+  const saveFormAsDraft = () => {
+    const formData = {
+      title,
+      subtitle,
+      questions,
+    };
+    localStorage.setItem("formDraft", JSON.stringify(formData));
+    toast("Form saved as draft!");
+  };
+
+  // // Auto-save form data at regular intervals
+  // useEffect(() => {
+  //   const autoSaveInterval = setInterval(() => {
+  //     saveFormAsDraft(); // Auto-save every 5 seconds
+  //   }, 5000);
+
+  //   // Clear the interval when the component unmounts
+  //   return () => clearInterval(autoSaveInterval);
+  // }, [title, subtitle, questions]);
+  // Auto-save form data with a debounce mechanism
+  const handleTyping = () => {
+    clearTimeout(typingTimeout); // Clear previous timeout
+
+    // Set a new timeout to save after a delay (e.g., 1 second of idle time)
+    typingTimeout = setTimeout(() => {
+      setIsAutoSaving(true); // Show the "Auto-saving..." indicator
+      saveFormAsDraft(); // Auto-save after pause
+      setIsAutoSaving(false); // Hide the "Auto-saving..." indicator
+    }, 1000); // Adjust the debounce time as needed
+  };
+
+  // Load saved form data from localStorage
+  const loadFormFromDraft = () => {
+    const savedForm = localStorage.getItem("formDraft");
+    if (savedForm) {
+      const parsedData = JSON.parse(savedForm);
+      setTitle(parsedData.title);
+      setSubtitle(parsedData.subtitle);
+      setQuestions(parsedData.questions);
+    }
+  };
+
+  // Load form data when the component mounts (on page load)
+  useEffect(() => {
+    loadFormFromDraft();
+  }, []);
+
   // Add a new main question
   const addQuestion = () => {
     setQuestions([
@@ -387,6 +586,7 @@ export default function Questions() {
     const newQuestions = [...questions];
     newQuestions[index].question = value;
     setQuestions(newQuestions);
+    handleTyping(); // Trigger typing handler when the user types
   };
 
   const handleQuestionTypeChange = (
@@ -482,6 +682,28 @@ export default function Questions() {
     setQuestions(newQuestions);
   };
 
+  // Remove an option for multiple-choice or single-choice question
+  const removeOption = (
+    qIndex: number,
+    lIndex: number | null,
+    oIndex: number
+  ) => {
+    const newQuestions = [...questions];
+    if (lIndex !== null) {
+      newQuestions[qIndex].likertQuestions[lIndex].options.splice(oIndex, 1); // Remove option from Likert scale
+    } else {
+      newQuestions[qIndex].options.splice(oIndex, 1); // Remove option from multiple-choice or single-choice
+    }
+    setQuestions(newQuestions);
+  };
+
+  // Remove a question
+  const removeQuestion = (qIndex: number) => {
+    const newQuestions = [...questions];
+    newQuestions.splice(qIndex, 1); // Remove the question at the specified index
+    setQuestions(newQuestions);
+  };
+
   const [allowAudio, setAllowAudio] = useState(false);
   const [allowVideo, setAllowVideo] = useState(false);
   const [allowImage, setAllowImage] = useState(false);
@@ -499,6 +721,147 @@ export default function Questions() {
       alert("Access token is missing.");
       return;
     }
+
+    //validation check starts
+    // Validation check starts
+    // validation check for survey title and subtitle
+    // if (!title.trim()) {
+    //   toast.error("Survey title cannot be empty.");
+    //   return;
+    // }
+
+    // if (!subtitle.trim()) {
+    //   toast.error("Survey subtitle cannot be empty.");
+    //   return;
+    // }
+
+    // // validation check for questions
+    // for (const question of questions) {
+    //   if (!question.question.trim()) {
+    //     toast.error("All questions must have valid text.");
+    //     return;
+    //   }
+
+    //   // if (
+    //   //   (question.type === "multiple-choice" ||
+    //   //     question.type === "single-choice") &&
+    //   //   question.options.some((option) => !option.trim())
+    //   // ) {
+    //   //   toast.error(
+    //   //     "Multiple-choice and single-choice questions must have at least one non-empty option."
+    //   //   );
+    //   //   return;
+    //   // }
+    //   if (
+    //     (question.type === "multiple-choice" ||
+    //       question.type === "single-choice") &&
+    //     question.options.length === 1 &&
+    //     question.options[0].trim() === ""
+    //   ) {
+    //     toast.error(
+    //       "Multiple-choice and single-choice questions must have more than one option."
+    //     );
+    //     return;
+    //   }
+    //   if (
+    //     question.type === "likert-scale" &&
+    //     question.likertQuestions.some((likertQ) =>
+    //       likertQ.options.every((option) => !option.trim())
+    //     )
+    //   ) {
+    //     toast.error(
+    //       "Likert scale questions must have at least one non-empty option."
+    //     );
+    //     return;
+    //   }
+    // }
+    // if (!title.trim()) {
+    //   toast.error("Survey title cannot be empty.");
+    //   return;
+    // }
+
+    // if (!subtitle.trim()) {
+    //   toast.error("Survey subtitle cannot be empty.");
+    //   return;
+    // }
+
+    // for (const question of questions) {
+    //   if (!question.question.trim()) {
+    //     toast.error("All questions must have a valid text.");
+    //     return;
+    //   }
+
+    //   if (
+    //     (question.type === "multiple-choice" ||
+    //       question.type === "single-choice") &&
+    //     question.options.length === 0
+    //   ) {
+    //     toast.error(
+    //       "Multiple-choice and single-choice questions must have at least one option."
+    //     );
+    //     return;
+    //   }
+
+    //   if (
+    //     question.type === "likert-scale" &&
+    //     question.likertQuestions.length === 0
+    //   ) {
+    //     toast.error(
+    //       "Likert scale questions must contain at least one sub-question."
+    //     );
+    //     return;
+    //   }
+
+    //   // Check if options are empty for each Likert scale
+    //   for (const likertQ of question.likertQuestions) {
+    //     if (likertQ.options.every((option) => !option.trim())) {
+    //       toast.error("Likert scale options cannot be empty.");
+    //       return;
+    //     }
+    //   }
+    // }
+    // Validation check ends
+    for (const question of questions) {
+      if (!question.question.trim()) {
+        toast.error("All questions must have a valid text.");
+        return;
+      }
+
+      // if (
+      //   (question.type === "multiple-choice" ||
+      //     question.type === "single-choice") &&
+      //   question.options.length === 0
+      // ) {
+      //   toast.error(
+      //     "Multiple-choice and single-choice questions must have at least one option."
+      //   );
+      //   return;
+      // }
+      // Validate options for multiple-choice and single-choice questions
+      if (
+        (question.type === "multiple-choice" ||
+          question.type === "single-choice") &&
+        (question.options.length === 0 ||
+          question.options.some((option) => !option.trim()))
+      ) {
+        toast.error(
+          "Multiple-choice and single-choice questions must have at least one non-empty option."
+        );
+        return;
+      }
+
+      if (
+        question.type === "likert-scale" &&
+        question.likertQuestions.length === 0
+      ) {
+        toast.error(
+          "Likert scale questions must contain at least one sub-question."
+        );
+        return;
+      }
+    }
+
+    //validation check ends
     const surveyData = {
       title,
       subtitle,
@@ -510,6 +873,7 @@ export default function Questions() {
       allowImage, // Now included at the survey level
     };
 
+    setIsSubmitting(true); // Set submitting state to true when submission starts
     try {
       const response = await fetch(
         "http://localhost:5000/admin/questions/create",
@@ -526,15 +890,30 @@ export default function Questions() {
       if (!response.ok) {
         const errorData = await response.json();
         alert(`Error: ${errorData.message}`);
+        setIsSubmitting(false); // Reset submitting state in case of error
         return;
       }
 
       const data = await response.json();
       console.log("Survey submitted successfully:", data);
-      alert("Survey submitted successfully!");
+      toast("Survey submitted successfully!");
+
+      // Clear the form after successful submission
+      setTitle("");
+      setSubtitle("");
+      setQuestions([
+        {
+          question: "Question 1",
+          type: "likert-scale",
+          options: [],
+          likertQuestions: [],
+        },
+      ]);
+      setIsSubmitting(false); // Reset submitting state after clearing form
     } catch (error) {
       console.error("Error submitting survey:", error);
       alert("An error occurred while submitting the survey.");
+      setIsSubmitting(false); // Reset submitting state in case of error
     }
   };
 
@@ -553,7 +932,7 @@ export default function Questions() {
 
       <h1 className="text-2xl font-bold mb-4">Survey Questions</h1>
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-6"
+        className="bg-gray-800 text-white px-4 py-2 rounded mb-6"
         onClick={() => setIsFormOpen(!isFormOpen)}
       >
         {isFormOpen ? "Close Form" : "Create New Survey"}
@@ -569,7 +948,11 @@ export default function Questions() {
             className="w-full p-2 border rounded-md mb-4"
             placeholder="Enter survey title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            // onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              handleTyping();
+            }}
           />
 
           <label className="block mb-2 font-medium">Survey Sub-title:</label>
@@ -578,8 +961,21 @@ export default function Questions() {
             className="w-full p-2 border rounded-md mb-4"
             placeholder="Enter survey sub-title"
             value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
+            onChange={(e) => {
+              setSubtitle(e.target.value);
+              handleTyping();
+            }}
+            // onChange={(e) => setSubtitle(e.target.value)}
           />
+          {/* <input
+            type="text"
+            value={subtitle}
+            onChange={(e) => {
+              setSubtitle(e.target.value);
+              handleTyping();
+            }}
+            placeholder="Survey Subtitle"
+          /> */}
 
           {questions.map((q, qIndex) => (
             <div key={qIndex} className="border-b pb-4 mb-4">
@@ -700,6 +1096,19 @@ export default function Questions() {
                       }
                     />
                   ))}
+                  {/* <button onClick={() => removeOption(qIndex, null, oIndex)}>Remove Option</button> */}
+                  <button
+                    onClick={() => addOption(qIndex, null)}
+                    className="bg-gray-500 text-white px-3 py-1 rounded mt-2 "
+                  >
+                    Add Option
+                  </button>{" "}
+                  <button
+                    onClick={() => removeOption(qIndex, null, qIndex)}
+                    className="bg-gray-500 text-white px-3 py-1 rounded mt-2 mx-3"
+                  >
+                    Remove Option
+                  </button>
                 </div>
               )}
 
@@ -721,18 +1130,29 @@ export default function Questions() {
           ))}
 
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded mt-4 w-full"
+            className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
             onClick={addQuestion}
           >
             + Add Another Question
           </button>
 
           {/* Submit Button */}
+
           <button
-            className="bg-green-600 text-white px-4 py-2 rounded mt-4 w-full"
+            onClick={saveFormAsDraft}
+            className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
+          >
+            Save as Draft
+          </button>
+          {/* <button onClick={handleSubmitSurvey} disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Survey"}
+          </button> */}
+
+          <button
+            className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
             onClick={handleSubmitSurvey}
           >
-            Submit Survey
+            {isSubmitting ? "Submitting..." : "Submit Survey"}
           </button>
         </div>
       )}

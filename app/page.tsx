@@ -25,11 +25,18 @@ export default function SignInPage() {
       console.log("Extracted Role:", role); // Debug role before redirecting
       const token = data.accessToken || data?.user?.accessToken; // Handle possible nesting
       console.log("Extracted Role:", role); // Debug role before redirecting
+      const selectedState = data.selectedState || data?.user?.selectedState; // Handle possible nesting
+      console.log("Extracted State:", selectedState); // Debug role before redirecting
+      // const fieldCoordinatorId =
+      //   data.fieldCoordinatorId || data?.user?.fieldCoordinatorId; // Handle possible nesting
+      // console.log("Extracted fieldCoordinatorId:", fieldCoordinatorId); // Debug role before redirecting
 
       if (role) {
         // Store user role in localStorage or a global state
         localStorage.setItem("userRole", role);
         localStorage.setItem("accessToken", token);
+        localStorage.setItem("selectedState", selectedState);
+        // localStorage.setItem("fieldCoordinatorId", fieldCoordinatorId);
         switch (role) {
           case "admin":
             router.push("/admin");

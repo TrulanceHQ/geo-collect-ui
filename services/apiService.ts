@@ -1,5 +1,9 @@
 import axios from "axios";
+import { useState } from "react";
 import { toast } from "react-toastify";
+// import jwtDecode from "jwt-decode";
+// import * as jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // Replace with your API base URL
@@ -11,7 +15,7 @@ export const login = async (emailAddress: string, password: string) => {
       emailAddress,
       password,
     });
-    console.log(response.data);
+    // console.log(response.data);
     if (response.data?.accessToken) {
       toast.success("Login successful");
       return response.data;
@@ -19,7 +23,7 @@ export const login = async (emailAddress: string, password: string) => {
       throw new Error("Invalid response from server");
     }
   } catch (error) {
-    console.error("Error logging in:", error);
+    // console.error("Error logging in:", error);
     toast.error("Invalid email or password");
     throw error;
   }
@@ -27,7 +31,8 @@ export const login = async (emailAddress: string, password: string) => {
 export const createUsers = async (
   emailAddress: string,
   role: string,
-  creatorRole: string
+  creatorRole: string,
+  selectedState: string
 ) => {
   try {
     // Retrieve token from local storage (or wherever you store the user's token)
@@ -35,12 +40,15 @@ export const createUsers = async (
     if (!token) {
       throw new Error("No token found");
     }
+
+    console.log(emailAddress, role, selectedState, creatorRole);
     const response = await axios.post(
       `${API_BASE_URL}/create-user`,
       {
         emailAddress,
         role,
         creatorRole,
+        selectedState,
       },
       {
         headers: {
@@ -52,6 +60,7 @@ export const createUsers = async (
       emailAddress,
       role,
       creatorRole,
+      selectedState,
     });
     toast.success("User created successful");
     return response.data;
@@ -62,10 +71,28 @@ export const createUsers = async (
     throw error;
   }
 };
+
+// const getFieldCoordinatorId = () => {
+//   const token = localStorage.getItem("accessToken");
+
+//   if (!token) {
+//     throw new Error("No token found");
+//   }
+
+//   const decodedToken: any = jwtDecode(token); // Decoding the token
+
+//   return decodedToken?.fieldCoordinatorId; // Assuming `fieldCoordinatorId` is in the token's payload
+// };
+
+// const fieldCoordinatorId = getFieldCoordinatorId();
+// console.log("Field Coordinator ID:", fieldCoordinatorId); // This will give the fieldCoordinatorId
+
 export const createEnumerators = async (
   emailAddress: string,
   role: string,
   creatorRole: string
+
+  // selectedState: string
 ) => {
   try {
     // Retrieve token from local storage (or wherever you store the user's token)
@@ -73,12 +100,35 @@ export const createEnumerators = async (
     if (!token) {
       throw new Error("No token found");
     }
+
+    // const fieldCoordinatorId = getFieldCoordinatorId(); // Get the ID from the token
+
+    // Dynamically retrieve the selectedState for fieldCoordinator
+    const getUserState = () => {
+      // Replace this with your method of getting the user's state (e.g., from localStorage or API)
+      const selectedState = localStorage.getItem("selectedState"); // Example with localStorage
+      return selectedState || ""; // Default to an empty string if not found
+    };
+
+    const selectedState =
+      creatorRole === "fieldCoordinator" ? getUserState() : "";
+
+    console.log("Payload being sent:", {
+      emailAddress,
+      role,
+      creatorRole,
+      selectedState,
+      // fieldCoordinatorId,
+    });
+
     const response = await axios.post(
       `${API_BASE_URL}/create-enumerator`,
       {
         emailAddress,
         role,
         creatorRole,
+        selectedState,
+        // fieldCoordinatorId,
       },
       {
         headers: {
@@ -90,6 +140,8 @@ export const createEnumerators = async (
       emailAddress,
       role,
       creatorRole,
+      selectedState,
+      // fieldCoordinatorId,
     });
     toast.success("User created successful");
     return response.data;
@@ -109,7 +161,7 @@ export const fetchUserData = async (userId: string) => {
     const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    // console.error("Error fetching user data:", error);
     throw error;
   }
 };
@@ -179,7 +231,7 @@ export const createState = async (
     }
 
     const payload = { ngstates: stateNames, creatorRole };
-    console.log("Sending request payload:", JSON.stringify(payload, null, 2));
+    // console.log("Sending request payload:", JSON.stringify(payload, null, 2));
     // Make API request to create state
     const response = await axios.post(
       `http://localhost:5000/api/v1/admin/create-state`, // Ensure the endpoint is correct
@@ -193,14 +245,134 @@ export const createState = async (
       }
     );
 
-    console.log("Request payload:", { ngstates: stateNames, creatorRole });
+    // console.log("Request payload:", { ngstates: stateNames, creatorRole });
     toast.success("State created successfully!");
     return response.data;
   } catch (error) {
     const errorMessage = "Failed to create state";
 
-    console.error(errorMessage, error);
+    // console.error(errorMessage, error);
     toast.error(errorMessage);
     throw error;
+  }
+};
+
+//fetch
+
+// export const fetchTotalStates = async (): Promise<number> => {
+//   try {
+//     const response = await axios.get(
+//       "http://localhost:5000/api/v1/admin/view-states"
+//     ); // Adjust API endpoint
+//     return response.data.total;
+//   } catch (error) {
+//     console.error("Error fetching total states:", error);
+//     return 0;
+//   }
+// };
+
+//fetch states
+
+interface StateResponse {
+  // states: string[];
+  states: {
+    ngstates: string[];
+  }[];
+  total: number;
+}
+
+// export const fetchTotalStates = async (): Promise<number> => {
+export const fetchTotalStates = async (): Promise<StateResponse> => {
+  try {
+    const token = localStorage.getItem("accessToken"); // Retrieve token from storage
+
+    if (!token) {
+      // console.error("No authentication token found");
+      return { states: [], total: 0 };
+      throw new Error("No authentication token found");
+    }
+
+    // console.log("Token:", token); // Debug token retrieval
+    const response = await axios.get(
+      "http://localhost:5000/api/v1/admin/view-states",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include token in request
+        },
+      }
+    );
+    console.log("States Response:", response.data); // Debug API response
+
+    // Ensure response format is correct
+    if (
+      !Array.isArray(response.data.states) ||
+      typeof response.data.total !== "number"
+    ) {
+      // console.error("Unexpected response format:", response.data);
+      return { states: [], total: 0 };
+    }
+    return { states: response.data.states, total: response.data.total };
+  } catch (error) {
+    // console.error("Error fetching total states:", error);
+    return { states: [], total: 0 };
+  }
+};
+export const fetchUsersPerRole = async (): Promise<Record<string, number>> => {
+  try {
+    const token = localStorage.getItem("accessToken"); // Retrieve token from storage
+
+    if (!token) {
+      return {};
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/user-count`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Include token in request
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    return {};
+  }
+};
+
+//fetch all users
+
+// Define the User type
+export interface User {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  emailAddress: string;
+  role: "admin" | "enumerator" | "fieldCoordinator";
+  creatorRole?: "admin" | "enumerator" | "fieldCoordinator";
+  selectedState?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  gender?: "male" | "female";
+  phoneNumber?: string;
+  image?: string;
+}
+
+export const fetchAllUsers = async (): Promise<User[]> => {
+  try {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      return [];
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    return [];
   }
 };

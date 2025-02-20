@@ -1,7 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
-import { createUsers, createState } from "@/services/apiService"; // Make sure to add createState API
+import {
+  createUsers,
+  createState,
+  fetchTotalStates,
+  fetchUsersPerRole,
+} from "@/services/apiService"; // Make sure to add createState API
 import ProtectedPage from "@/components/ProtectedPage";
 import { AxiosError } from "axios";
 
@@ -14,6 +19,38 @@ export default function DashboardPage() {
   const [isStateFormOpen, setIsStateFormOpen] = useState(false); // State for creating states
   const [stateName, setStateName] = useState<string[]>([]);
   const [newState, setNewState] = useState(""); // Temporary input for a single state
+  const [totalStates, setTotalStates] = useState<number>(0); // Store total count
+
+  //fetch states from backend for add user
+
+  const [selectedState, setSelectedState] = useState(""); // State for selected state
+  const [states, setStates] = useState<string[]>([]); // Array to hold fetched states
+
+  // Fetch states when component mounts
+  useEffect(() => {
+    const loadStates = async () => {
+      const { total, states: fetchedStates } = await fetchTotalStates();
+      setTotalStates(total);
+
+      // Extract the ngstates from the fetched states
+      if (fetchedStates.length > 0) {
+        setStates(fetchedStates[0]?.ngstates || []);
+      }
+    };
+
+    loadStates();
+  }, []);
+
+  const [userCounts, setUserCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const getUserCounts = async () => {
+      const data = await fetchUsersPerRole();
+      setUserCounts(data); // Now it correctly sets the state
+    };
+
+    getUserCounts();
+  }, []);
 
   // const [stateName, setStateName] = useState(""); // State name for creating a state
   const [stateSuccess, setStateSuccess] = useState(""); // State success message
@@ -21,8 +58,13 @@ export default function DashboardPage() {
   const handleCreateUser = async () => {
     const creatorRole = "admin";
     try {
-      const data = await createUsers(emailAddress, role, creatorRole);
-      console.log("User created successfully:", data);
+      const data = await createUsers(
+        emailAddress,
+        role,
+        creatorRole,
+        selectedState
+      );
+      // console.log("User created successfully:", data);
       setSuccess("User created successfully!");
       setIsFormOpen(false);
       setError("");
@@ -49,7 +91,7 @@ export default function DashboardPage() {
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
-      console.log("States created successfully:", data);
+      // console.log("States created successfully:", data);
       setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
@@ -87,7 +129,7 @@ export default function DashboardPage() {
         {/* Add User Button */}
         <div className="mt-4">
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded w-full md:w-auto"
+            className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
             onClick={() => setIsFormOpen(true)}
           >
             + Add User
@@ -97,7 +139,7 @@ export default function DashboardPage() {
         {/* Create State Button */}
         <div className="mt-4">
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded w-full md:w-auto"
+            className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
             onClick={() => setIsStateFormOpen(true)} // Open the state form modal
           >
             + Add State
@@ -164,7 +206,7 @@ export default function DashboardPage() {
                   Cancel
                 </button>
                 <button
-                  className="bg-green-600 text-white px-4 py-2 rounded"
+                  className="bg-gray-800 text-white px-4 py-2 rounded"
                   onClick={handleCreateState}
                 >
                   Submit
@@ -202,6 +244,20 @@ export default function DashboardPage() {
                 <option value="enumerator">Enumerator</option>
               </select>
 
+              {/* States Dropdown */}
+              <label className="block mb-2 font-medium">State:</label>
+              <select
+                className="w-full p-2 border rounded-md mb-4"
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+              >
+                <option value="">Select a state</option>
+                {states.map((state, index) => (
+                  <option key={index} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
               {/* Buttons */}
               <div className="flex justify-between">
                 <button
@@ -211,7 +267,7 @@ export default function DashboardPage() {
                   Cancel
                 </button>
                 <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-gray-800 text-white px-4 py-2 rounded"
                   onClick={handleCreateUser}
                 >
                   Submit
@@ -232,22 +288,28 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Data</h3>
-            <p className="text-2xl font-bold">1,000</p>
+            <p className="text-2xl font-bold">0</p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total States</h3>
-            <p className="text-2xl font-bold">5</p>
+            <p className="text-2xl font-bold">{totalStates}</p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Field Coordinators</h3>
-            <p className="text-2xl font-bold">10</p>
+            <p className="text-2xl font-bold">
+              {userCounts["fieldCoordinator"] ?? 0}
+            </p>
+            {/* <p className="text-2xl font-bold">{userCounts.fieldCoordinator ?? 0}</p> */}
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Enumerators</h3>
-            <p className="text-2xl font-bold">50</p>
+            <p className="text-2xl font-bold">
+              {userCounts["enumerator"] ?? 0}
+            </p>
+            {/* <p className="text-2xl font-bold">{userCounts.enumerator ?? 0}</p> */}
           </div>
         </div>
       </div>
