@@ -297,7 +297,7 @@ export default function Questions() {
       }
 
       const data = await response.json();
-      console.log("Survey submitted successfuljly:", data);
+      console.log("Survey submitted successfully:", data);
       toast("Survey submitted successfully!");
 
       // Clear the form after successful submission
