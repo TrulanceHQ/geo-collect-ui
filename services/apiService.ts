@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -10,7 +11,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // Replace with your API base URL
 
 export const login = async (emailAddress: string, password: string) => {
-  // console.log(emailAddress, password)
   try {
     const response = await axios.post(`${API_BASE_URL}/login`, {
       emailAddress,
@@ -29,6 +29,7 @@ export const login = async (emailAddress: string, password: string) => {
     throw error;
   }
 };
+
 export const createUsers = async (
   emailAddress: string,
   role: string,
@@ -196,9 +197,10 @@ export const submitSurvey = async (surveyData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
+    console.log("Request payload:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("Error submitting survey:", error);
+    console.log("Error submitting survey:", error);
     toast.error(error.response?.data?.message || "Failed to submit survey");
     throw error;
   }
@@ -356,5 +358,46 @@ export const fetchAllUsers = async (): Promise<User[]> => {
     return response.data;
   } catch (error) {
     return [];
+  }
+};
+export const fetchQuestionnaires = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/enumerator/survey/all`);
+    // const surveyId = response.data?.[0]?.id;
+
+    return { surveys: response.data };
+    // return response.data;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    throw error;
+  }
+};
+
+export const submitQuestionnaire = async (questionnaireData: any) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    // console.log("Token:", token);
+    // console.log("Questionnaire Data:", questionnaireData);
+    if (!token) {
+      throw new Error("Unauthorized: No access token found");
+    }
+    const response = await axios.post(
+      `${API_BASE_URL}/enumerator/survey/submit`,
+      questionnaireData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    toast.success("Survey submitted successfully!");
+    console.log("Request payload:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.log("Error submitting survey:", error.response?.data?.message);
+    toast.error(error.response?.data?.message || "Failed to submit survey");
+    throw error;
   }
 };

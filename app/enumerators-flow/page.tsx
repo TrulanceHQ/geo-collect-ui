@@ -93,7 +93,7 @@ export default function EnumeratorDashboard() {
               >
                 &times;
               </button>
-              <SurveyForm />
+              <SurveyForm isOpen={isSurveyOpen} onClose={() => setIsSurveyOpen(false)} />
             </div>
           </div>
         )}

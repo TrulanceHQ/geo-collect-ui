@@ -209,7 +209,7 @@ export default function FieldCoordinatorsDashboard() {
         )}
 
         {/* Survey Modal */}
-        {isSurveyOpen && isClient && (
+        {/* {isSurveyOpen && isClient && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] relative">
               <button
@@ -221,7 +221,7 @@ export default function FieldCoordinatorsDashboard() {
               <SurveyForm />
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </ProtectedPage>
   );
