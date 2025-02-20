@@ -2,10 +2,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // Replace with your API base URL
 
 export const login = async (emailAddress: string, password: string) => {
-  // console.log(emailAddress, password)
   try {
     const response = await axios.post(`${API_BASE_URL}/login`, {
       emailAddress,
@@ -24,6 +24,7 @@ export const login = async (emailAddress: string, password: string) => {
     throw error;
   }
 };
+
 export const createUsers = async (
   emailAddress: string,
   role: string,
@@ -42,6 +43,7 @@ export const createUsers = async (
     throw error;
   }
 };
+
 export const createEnumerators = async (
   emailAddress: string,
   role: string,
@@ -60,9 +62,10 @@ export const createEnumerators = async (
   }
 };
 
-export const fetchUserData = async (userId: string) => {
+export const fetchQuestionnaires = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
+    const response = await axios.get(`${API_BASE_URL}/enumerator/questions/all`);
+    // console.log("response", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching user data:", error);

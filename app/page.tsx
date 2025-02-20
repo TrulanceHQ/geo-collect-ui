@@ -22,6 +22,7 @@ export default function SignInPage() {
       console.log('Login successful:', { accessToken, user });
 
       localStorage.setItem('accessToken', accessToken);
+      console.log(user)
       if (user.role === 'admin') {
         router.push('/admin');
       } else if (user.role === 'fieldCoordinator') {

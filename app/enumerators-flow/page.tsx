@@ -254,14 +254,15 @@ export default function EnumeratorDashboard() {
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] relative">
             <button
               className="absolute top-2 right-4 text-gray-600 hover:text-gray-800 text-5xl"
-              onClick={() => setIsSurveyOpen(false)}
+              onClick={() => setIsSurveyOpen(false)} // Close modal properly
             >
               &times;
             </button>
-            <SurveyForm />
+            <SurveyForm isOpen={isSurveyOpen} onClose={() => setIsSurveyOpen(false)} />
           </div>
         </div>
       )}
+
     </div>
   );
 }
