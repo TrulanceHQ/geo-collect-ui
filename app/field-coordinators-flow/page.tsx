@@ -137,7 +137,7 @@ export default function FieldCoordinatorsDashboard() {
     try {
       const data = await createEnumerators(email, role, creatorRole);
       console.log("User created successfully:", data); // Log the success
-      setSuccess("User created successfully!");
+      // setSuccess("User created successfully!");
       setIsFormOpen(false); // Close the form/modal after successful creation
       setError(""); // Clear previous errors
     } catch (error: unknown) {
