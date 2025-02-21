@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 // import jwtDecode from "jwt-decode";
@@ -135,19 +135,64 @@ export const createEnumerators = async (
 
     toast.error(errorMessage);
     throw error;
-    //  catch (error) {
-    //   console.error("Error logging in:", error);
-    //   throw error;
   }
 };
 
 export const fetchUserData = async (userId: string) => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    throw new Error("Token not found"); // Handle token absence appropriately
+  }
+
   try {
-    const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
+    const response = await axios.get(`${API_BASE_URL}/allusers/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
-    // console.error("Error fetching user data:", error);
+    console.error("Error fetching user data:", error);
     throw error;
+  }
+};
+
+//update user profile
+interface UpdatedData {
+  [key: string]: any; // You can refine this type based on your data structure
+}
+
+export const updateUserProfile = async (
+  userId: string,
+  updatedData: UpdatedData
+): Promise<any> => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    throw new Error("Token not found"); // Handle token absence appropriately
+  }
+
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/update-user/${userId}`,
+      updatedData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: unknown) {
+    console.error("Error updating profile:", error);
+    if (error instanceof AxiosError) {
+      throw new Error(
+        error.response?.data?.message || "Error updating profile"
+      );
+    } else {
+      throw new Error("Unexpected error occurred while updating profile");
+    }
   }
 };
 

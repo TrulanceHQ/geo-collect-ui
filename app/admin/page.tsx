@@ -5,12 +5,97 @@ import {
   createState,
   createUsers,
   fetchTotalStates,
+  fetchUserData,
   fetchUsersPerRole,
+  updateUserProfile,
 } from "@/services/apiService"; // Make sure to add createState API
 import ProtectedPage from "@/components/ProtectedPage";
 import { AxiosError } from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export default function DashboardPage() {
+  const [adminData, setAdminData] = useState({
+    firstName: "",
+    lastName: "",
+    emailAddress: "",
+    phoneNumber: "",
+  });
+
+  const [isEditMode, setIsEditMode] = useState(false); // Toggle Edit mode
+  const [updatedAdminData, setUpdatedAdminData] = useState({
+    firstName: "",
+    lastName: "",
+    emailAddress: "",
+    phoneNumber: "",
+  });
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      // Decode the JWT token to get userId
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        // Handle case where no token exists
+        console.error("No token found");
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode<{ sub: string }>(token); // Define the expected type
+        const userId = decodedToken.sub;
+        console.log("Decoded Token:", decodedToken);
+
+        const data = await fetchUserData(userId); // Now userId is typed as string
+        setAdminData({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          emailAddress: data.emailAddress,
+          phoneNumber: data.phoneNumber,
+        });
+
+        setUpdatedAdminData({
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          emailAddress: data.emailAddress || "",
+          phoneNumber: data.phoneNumber || "",
+        });
+      } catch (error) {
+        console.error("Error decoding token or fetching user data:", error);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdatedAdminData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleProfileUpdate = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Token not found");
+      return;
+    }
+
+    const userId = jwtDecode<{ sub: string }>(token).sub;
+
+    try {
+      await updateUserProfile(userId, updatedAdminData);
+      setAdminData(updatedAdminData); // Update the state with the new data
+      setIsEditMode(false); // Switch to view mode
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error("Error updating profile:", error.response?.data?.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
+    }
+  };
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [emailAddress, setEmail] = useState("");
   const [role, setRole] = useState("enumerator");
@@ -123,15 +208,82 @@ export default function DashboardPage() {
         {/* Profile Section */}
         <div className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-x-6">
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-xl font-semibold">John Doe</h2>
-            <p className="text-gray-600">johndoe@example.com</p>
-            <p className="text-gray-600">+123 456 7890</p>
+            {/* Profile Data */}
+            {isEditMode ? (
+              <div>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={updatedAdminData.firstName}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="First Name"
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  value={updatedAdminData.lastName}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="Last Name"
+                />
+                <input
+                  type="email"
+                  name="emailAddress"
+                  value={updatedAdminData.emailAddress}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="Email Address"
+                  disabled // This will disable editing the email field
+                />
+                <input
+                  type="text"
+                  name="phoneNumber"
+                  value={updatedAdminData.phoneNumber}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="Phone Number"
+                />
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {`${adminData?.firstName || "First Name"} ${
+                    adminData?.lastName || "Last Name"
+                  }`}
+                </h2>
+                <p className="text-gray-600">
+                  {adminData?.emailAddress || "No email"}
+                </p>
+                <p className="text-gray-600">
+                  {adminData?.phoneNumber || "No phone number"}
+                </p>
+              </div>
+            )}
           </div>
 
-          <button className="text-blue-500 hover:text-blue-700">
+          {/* <button className="text-blue-500 hover:text-blue-700">
+            <FaEdit size={20} />
+          </button> */}
+          <button
+            className="text-blue-500 hover:text-blue-700"
+            onClick={() => setIsEditMode((prev) => !prev)}
+          >
             <FaEdit size={20} />
           </button>
         </div>
+
+        {/* Save Button (only when in Edit Mode) */}
+        {isEditMode && (
+          <div className="mt-4">
+            <button
+              className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
+              onClick={handleProfileUpdate}
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
 
         {/* Add User Button */}
         <div className="mt-4">
