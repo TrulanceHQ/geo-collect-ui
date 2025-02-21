@@ -6,9 +6,14 @@ import SubmissionSuccessModal from "./SubmissionSuccessModal";
 interface SurveyFormProps {
   isOpen: boolean;
   onClose: () => void;
+  location: {
+    latitude: number | null;
+    longitude: number | null;
+    address: string;
+  };
 }
 
-export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
+export default function SurveyForm({ isOpen, onClose, location}: SurveyFormProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   interface SurveyData {
@@ -76,7 +81,7 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
         questionId,
         answer,
       }));
-      const payload = { responses: formattedResponses, surveyId };
+      const payload = { responses: formattedResponses, surveyId, location: location.address };
 
       await submitQuestionnaire(payload);
       setShowSuccessModal(true);

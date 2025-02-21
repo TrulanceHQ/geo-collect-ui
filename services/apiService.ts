@@ -376,8 +376,6 @@ export const fetchQuestionnaires = async () => {
 export const submitQuestionnaire = async (questionnaireData: any) => {
   try {
     const token = localStorage.getItem("accessToken");
-    // console.log("Token:", token);
-    // console.log("Questionnaire Data:", questionnaireData);
     if (!token) {
       throw new Error("Unauthorized: No access token found");
     }

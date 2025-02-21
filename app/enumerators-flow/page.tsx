@@ -5,13 +5,47 @@ import { FaPlayCircle } from "react-icons/fa";
 import SurveyForm from "@/components/Survey";
 import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
+import axios from "axios";
 
 export default function EnumeratorDashboard() {
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  // const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [location, setLocation] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+    address: string;
+  }>({
+    latitude: null,
+    longitude: null,
+    address: "",
+  });
 
   useEffect(() => {
-    setIsClient(true); // Ensures it only renders on the client
+    setIsClient(true); 
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation((prev) => ({ ...prev, latitude, longitude }));
+  
+          try {
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            );
+            const address = response.data.display_name;
+            setLocation((prev) => ({ ...prev, address }));
+          } catch (error) {
+            console.error("Error fetching address:", error);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
   }, []);
 
   if (!isClient) {
@@ -38,8 +72,8 @@ export default function EnumeratorDashboard() {
         {/* Profile Section */}
         <div className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-x-6">
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-xl font-semibold">Jane Doe</h2>
-            <p className="text-gray-600">janedoe@example.com</p>
+            <h2 className="text-xl font-semibold">Name</h2>
+            <p className="text-gray-600">enumerator@gmail.com</p>
             <p className="text-gray-600">+234 123 4567</p>
           </div>
         </div>
@@ -48,16 +82,16 @@ export default function EnumeratorDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Surveys Completed</h3>
-            <p className="text-2xl font-bold">15</p>
+            <p className="text-2xl font-bold">0</p>
           </div>
-          <div className="bg-white shadow-md rounded-lg p-4 text-center">
+          {/* <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Pending Surveys</h3>
-            <p className="text-2xl font-bold">3</p>
+            <p className="text-2xl font-bold">0</p>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Responses</h3>
-            <p className="text-2xl font-bold">540</p>
-          </div>
+            <p className="text-2xl font-bold">0</p>
+          </div> */}
         </div>
 
         {/* Start Survey Section */}
@@ -93,7 +127,7 @@ export default function EnumeratorDashboard() {
               >
                 &times;
               </button>
-              <SurveyForm isOpen={isSurveyOpen} onClose={() => setIsSurveyOpen(false)} />
+              <SurveyForm isOpen={isSurveyOpen} onClose={() => setIsSurveyOpen(false)} location={location}/>
             </div>
           </div>
         )}
