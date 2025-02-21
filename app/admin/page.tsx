@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import {
+  createState,
   // createUsers,
   // createState,
   fetchTotalStates,
@@ -88,9 +89,9 @@ export default function DashboardPage() {
       return;
     }
 
-    // const creatorRole = "admin";
+    const creatorRole = "admin";
     try {
-      // const data = await createState(stateName, creatorRole);
+      const data = await createState(stateName, creatorRole);
       // console.log("States created successfully:", data);
       setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);

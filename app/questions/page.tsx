@@ -302,6 +302,7 @@ export default function Questions() {
 
     setIsSubmitting(true); // Set submitting state to true when submission starts
     try {
+      // const response = await fetch("https://geo-collect.onrender.com/api/v1/create", {
       const response = await fetch(`${API_BASE_URL}/create`, {
         method: "POST",
         headers: {
