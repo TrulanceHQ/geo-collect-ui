@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import {
   createState,
-  // createUsers,
-  // createState,
+  createUsers,
   fetchTotalStates,
   fetchUsersPerRole,
 } from "@/services/apiService"; // Make sure to add createState API
@@ -57,15 +56,15 @@ export default function DashboardPage() {
   const [stateSuccess, setStateSuccess] = useState(""); // State success message
 
   const handleCreateUser = async () => {
-    // const creatorRole = "admin";
+    const creatorRole = "admin";
     try {
-      // const data = await createUsers(
-      //   emailAddress,
-      //   role,
-      //   creatorRole,
-      //   selectedState
-      // );
-      // console.log("User created successfully:", data);
+      const data = await createUsers(
+        emailAddress,
+        role,
+        creatorRole,
+        selectedState
+      );
+      console.log("User created successfully:", data);
       setSuccess("User created successfully!");
       setIsFormOpen(false);
       setError("");
@@ -83,17 +82,19 @@ export default function DashboardPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleCreateState = async () => {
     if (stateName.length === 0) {
       setError("Please add at least one state.");
       return;
     }
-
+    setIsSubmitting(true); // Show "Submitting..."
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
       console.log("States created successfully:", data);
-      setStateSuccess("States created successfully!");
+      // setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
       setError("");
@@ -108,6 +109,8 @@ export default function DashboardPage() {
         setError("An unexpected error occurred.");
       }
       setStateSuccess("");
+    } finally {
+      setIsSubmitting(false); // Hide "Submitting..."
     }
   };
 
@@ -206,11 +209,18 @@ export default function DashboardPage() {
                 >
                   Cancel
                 </button>
-                <button
+                {/* <button
                   className="bg-gray-800 text-white px-4 py-2 rounded"
                   onClick={handleCreateState}
                 >
                   Submit
+                </button> */}
+                <button
+                  className="bg-gray-800 text-white px-4 py-2 rounded"
+                  onClick={handleCreateState}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>
