@@ -158,7 +158,7 @@ export const fetchUserData = async (userId: string) => {
   }
 };
 
-//update user profile
+//update user profilee
 interface UpdatedData {
   [key: string]: any; // You can refine this type based on your data structure
 }
