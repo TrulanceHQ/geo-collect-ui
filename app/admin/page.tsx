@@ -55,7 +55,10 @@ export default function DashboardPage() {
   // const [stateName, setStateName] = useState(""); // State name for creating a state
   const [stateSuccess, setStateSuccess] = useState(""); // State success message
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleCreateUser = async () => {
+    setIsSubmitting(true); // Show "Submitting..."
     const creatorRole = "admin";
     try {
       const data = await createUsers(
@@ -79,10 +82,10 @@ export default function DashboardPage() {
         setError("An unexpected error occurred.");
       }
       setSuccess("");
+    } finally {
+      setIsSubmitting(false); // Hide "Submitting..."
     }
   };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateState = async () => {
     if (stateName.length === 0) {
@@ -280,8 +283,9 @@ export default function DashboardPage() {
                 <button
                   className="bg-gray-800 text-white px-4 py-2 rounded"
                   onClick={handleCreateUser}
+                  disabled={isSubmitting}
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>

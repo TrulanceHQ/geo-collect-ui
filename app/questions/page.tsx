@@ -49,7 +49,9 @@ export default function Questions() {
   // {
   //   isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
   // }
-  {isAutoSaving && <p className="text-gray-500">Auto-saving...</p>}
+  {
+    isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
+  }
 
   // let typingTimeout: NodeJS.Timeout;
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -496,7 +498,7 @@ export default function Questions() {
                     className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full"
                     onClick={() => addLikertQuestion(qIndex)}
                   >
-                    + Add Another Likert Scale Question
+                    + Add Likert Scale Question
                   </button>
                 </div>
               )}
