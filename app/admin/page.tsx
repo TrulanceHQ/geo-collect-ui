@@ -92,7 +92,7 @@ export default function DashboardPage() {
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
-      // console.log("States created successfully:", data);
+      console.log("States created successfully:", data);
       setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
