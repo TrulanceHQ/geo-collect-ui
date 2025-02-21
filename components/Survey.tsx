@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchQuestionnaires, submitQuestionnaire } from "@/services/apiService";
 import SubmissionSuccessModal from "./SubmissionSuccessModal";
+import { toast } from "react-toastify";
 
 interface SurveyFormProps {
   isOpen: boolean;
   onClose: () => void;
+  location: { latitude: number; longitude: number; address?: string } | null;
 }
 
-export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
+export default function SurveyForm({ isOpen, onClose, location }: SurveyFormProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   interface SurveyData {
@@ -42,6 +44,7 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
           setLoading(false);
         })
         .catch((error) => {
+          toast.error("Error fetching survey data");
           console.error("Error fetching survey data:", error);
           setLoading(false);
         });
@@ -74,10 +77,10 @@ export default function SurveyForm({ isOpen, onClose }: SurveyFormProps) {
     try {
       const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
         questionId,
-        answer,
+        answer
       }));
-      const payload = { responses: formattedResponses, surveyId };
-
+        const payload = { responses: formattedResponses, surveyId, location: location?.address };
+      console.log("Submitting payload:", payload);
       await submitQuestionnaire(payload);
       setShowSuccessModal(true);
     } catch (error) {
