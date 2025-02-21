@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchQuestionnaires, submitQuestionnaire } from "@/services/apiService";
-import SubmissionSuccessModal from "./SubmissionSuccessModal";
+import { requestLocationPermission } from "@/services/util-services";
+import SubmissionSuccessModal from "@/components/SubmissionSuccessModal";
+import LocationApprovalModal from "@/components/LocationApprovalModal";
 import { toast } from "react-toastify";
 
 interface SurveyFormProps {
   isOpen: boolean;
   onClose: () => void;
-  location: { latitude: number; longitude: number; address?: string } | null;
+  initialLocation: { 
+    latitude: number; 
+    longitude: number; 
+    address?: string } | null;
 }
 
-export default function SurveyForm({ isOpen, onClose, location }: SurveyFormProps) {
+export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyFormProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   interface SurveyData {
@@ -30,6 +35,8 @@ export default function SurveyForm({ isOpen, onClose, location }: SurveyFormProp
   const [responses, setResponses] = useState<{ [key: string]: string | string[] | undefined }>({});
   const [loading, setLoading] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false); 
+  const [showLocationApprovalModal, setShowLocationApprovalModal] = useState(false);
+  const [location, setLocation] = useState(initialLocation);
 
   // Fetch survey data when the modal opens
   useEffect(() => {
@@ -75,18 +82,36 @@ export default function SurveyForm({ isOpen, onClose, location }: SurveyFormProp
   const handleSubmit = async () => {
     setLoading(true);
     try {
+
+      if (!location || !location.address) {
+        toast.error("Location is required to submit the survey.");
+        setShowLocationApprovalModal(true);
+        setLoading(false);
+        return;
+      }
+
       const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
         questionId,
         answer
       }));
-        const payload = { responses: formattedResponses, surveyId, location: location?.address };
-      console.log("Submitting payload:", payload);
+      const payload = { responses: formattedResponses, surveyId, location: location?.address };
       await submitQuestionnaire(payload);
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Submission failed:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApproveLocation = async () => {
+    try {
+      const locationData = await requestLocationPermission();
+      console.log("Location approved:", locationData);
+      setLocation(locationData);
+      setShowLocationApprovalModal(false);
+    } catch (error) {
+      toast.error(String(error));
     }
   };
   
@@ -224,6 +249,12 @@ export default function SurveyForm({ isOpen, onClose, location }: SurveyFormProp
 
               {/* Success Modal */}
               <SubmissionSuccessModal isOpen={showSuccessModal} onClose={() => { setShowSuccessModal(false); onClose(); }} />
+                            {/* Location Approval Modal */}
+            <LocationApprovalModal
+              isOpen={showLocationApprovalModal}
+              onClose={() => setShowLocationApprovalModal(false)}
+              onApprove={handleApproveLocation}
+            />
           </>
         )}
       </div>
