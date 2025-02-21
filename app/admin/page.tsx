@@ -116,14 +116,14 @@ export default function DashboardPage() {
         {/* Profile Section */}
         <div className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-x-6">
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-xl font-semibold">John Doe</h2>
-            <p className="text-gray-600">johndoe@example.com</p>
-            <p className="text-gray-600">+123 456 7890</p>
+            <h2 className="text-xl font-semibold">Name</h2>
+            <p className="text-gray-600">testcode@gmail.com</p>
+            <p className="text-gray-600">08125678909</p>
           </div>
 
-          <button className="text-blue-500 hover:text-blue-700">
+          {/* <button className="text-blue-500 hover:text-blue-700">
             <FaEdit size={20} />
-          </button>
+          </button> */}
         </div>
 
         {/* Add User Button */}
