@@ -4,8 +4,6 @@ import { toast } from "react-toastify";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // Replace with your API base URL
-
 export const login = async (emailAddress: string, password: string) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/login`, {
