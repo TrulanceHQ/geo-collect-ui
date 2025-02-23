@@ -1,11 +1,101 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
-import { createUsers, createState } from "@/services/apiService"; // Make sure to add createState API
+import {
+  createState,
+  createUsers,
+  fetchTotalStates,
+  fetchUserData,
+  fetchUsersPerRole,
+  updateUserProfile,
+} from "@/services/apiService"; // Make sure to add createState API
 import ProtectedPage from "@/components/ProtectedPage";
 import { AxiosError } from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export default function DashboardPage() {
+  const [adminData, setAdminData] = useState({
+    firstName: "",
+    lastName: "",
+    emailAddress: "",
+    phoneNumber: "",
+  });
+
+  const [isEditMode, setIsEditMode] = useState(false); // Toggle Edit mode
+  const [updatedAdminData, setUpdatedAdminData] = useState({
+    firstName: "",
+    lastName: "",
+    emailAddress: "",
+    phoneNumber: "",
+  });
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      // Decode the JWT token to get userId
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        // Handle case where no token exists
+        console.error("No token found");
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode<{ sub: string }>(token); // Define the expected type
+        const userId = decodedToken.sub;
+        console.log("Decoded Token:", decodedToken);
+
+        const data = await fetchUserData(userId); // Now userId is typed as string
+        setAdminData({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          emailAddress: data.emailAddress,
+          phoneNumber: data.phoneNumber,
+        });
+
+        setUpdatedAdminData({
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          emailAddress: data.emailAddress || "",
+          phoneNumber: data.phoneNumber || "",
+        });
+      } catch (error) {
+        console.error("Error decoding token or fetching user data:", error);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdatedAdminData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleProfileUpdate = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Token not found");
+      return;
+    }
+
+    const userId = jwtDecode<{ sub: string }>(token).sub;
+
+    try {
+      await updateUserProfile(userId, updatedAdminData);
+      setAdminData(updatedAdminData); // Update the state with the new data
+      setIsEditMode(false); // Switch to view mode
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error("Error updating profile:", error.response?.data?.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
+    }
+  };
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [emailAddress, setEmail] = useState("");
   const [role, setRole] = useState("enumerator");
@@ -14,14 +104,54 @@ export default function DashboardPage() {
   const [isStateFormOpen, setIsStateFormOpen] = useState(false); // State for creating states
   const [stateName, setStateName] = useState<string[]>([]);
   const [newState, setNewState] = useState(""); // Temporary input for a single state
+  const [totalStates, setTotalStates] = useState<number>(0); // Store total count
+
+  //fetch states from backend for add user
+
+  const [selectedState, setSelectedState] = useState(""); // State for selected state
+  const [states, setStates] = useState<string[]>([]); // Array to hold fetched states
+
+  // Fetch states when component mounts
+  useEffect(() => {
+    const loadStates = async () => {
+      const { total, states: fetchedStates } = await fetchTotalStates();
+      setTotalStates(total);
+
+      // Extract the ngstates from the fetched states
+      if (fetchedStates.length > 0) {
+        setStates(fetchedStates[0]?.ngstates || []);
+      }
+    };
+
+    loadStates();
+  }, []);
+
+  const [userCounts, setUserCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const getUserCounts = async () => {
+      const data = await fetchUsersPerRole();
+      setUserCounts(data); // Now it correctly sets the state
+    };
+
+    getUserCounts();
+  }, []);
 
   // const [stateName, setStateName] = useState(""); // State name for creating a state
   const [stateSuccess, setStateSuccess] = useState(""); // State success message
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleCreateUser = async () => {
+    setIsSubmitting(true); // Show "Submitting..."
     const creatorRole = "admin";
     try {
-      const data = await createUsers(emailAddress, role, creatorRole);
+      const data = await createUsers(
+        emailAddress,
+        role,
+        creatorRole,
+        selectedState
+      );
       console.log("User created successfully:", data);
       setSuccess("User created successfully!");
       setIsFormOpen(false);
@@ -37,6 +167,8 @@ export default function DashboardPage() {
         setError("An unexpected error occurred.");
       }
       setSuccess("");
+    } finally {
+      setIsSubmitting(false); // Hide "Submitting..."
     }
   };
 
@@ -45,12 +177,12 @@ export default function DashboardPage() {
       setError("Please add at least one state.");
       return;
     }
-
+    setIsSubmitting(true); // Show "Submitting..."
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
       console.log("States created successfully:", data);
-      setStateSuccess("States created successfully!");
+      // setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
       setError("");
@@ -65,6 +197,8 @@ export default function DashboardPage() {
         setError("An unexpected error occurred.");
       }
       setStateSuccess("");
+    } finally {
+      setIsSubmitting(false); // Hide "Submitting..."
     }
   };
 
@@ -74,20 +208,87 @@ export default function DashboardPage() {
         {/* Profile Section */}
         <div className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-x-6">
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-xl font-semibold">John Doe</h2>
-            <p className="text-gray-600">johndoe@example.com</p>
-            <p className="text-gray-600">+123 456 7890</p>
+            {/* Profile Data */}
+            {isEditMode ? (
+              <div>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={updatedAdminData.firstName}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="First Name"
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  value={updatedAdminData.lastName}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="Last Name"
+                />
+                <input
+                  type="email"
+                  name="emailAddress"
+                  value={updatedAdminData.emailAddress}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="Email Address"
+                  disabled // This will disable editing the email field
+                />
+                <input
+                  type="text"
+                  name="phoneNumber"
+                  value={updatedAdminData.phoneNumber}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded-md mb-2"
+                  placeholder="Phone Number"
+                />
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {`${adminData?.firstName || "First Name"} ${
+                    adminData?.lastName || "Last Name"
+                  }`}
+                </h2>
+                <p className="text-gray-600">
+                  {adminData?.emailAddress || "No email"}
+                </p>
+                <p className="text-gray-600">
+                  {adminData?.phoneNumber || "No phone number"}
+                </p>
+              </div>
+            )}
           </div>
 
-          <button className="text-blue-500 hover:text-blue-700">
+          {/* <button className="text-blue-500 hover:text-blue-700">
+            <FaEdit size={20} />
+          </button> */}
+          <button
+            className="text-blue-500 hover:text-blue-700"
+            onClick={() => setIsEditMode((prev) => !prev)}
+          >
             <FaEdit size={20} />
           </button>
         </div>
 
+        {/* Save Button (only when in Edit Mode) */}
+        {isEditMode && (
+          <div className="mt-4">
+            <button
+              className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
+              onClick={handleProfileUpdate}
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
+
         {/* Add User Button */}
         <div className="mt-4">
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded w-full md:w-auto"
+            className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
             onClick={() => setIsFormOpen(true)}
           >
             + Add User
@@ -97,7 +298,7 @@ export default function DashboardPage() {
         {/* Create State Button */}
         <div className="mt-4">
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded w-full md:w-auto"
+            className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
             onClick={() => setIsStateFormOpen(true)} // Open the state form modal
           >
             + Add State
@@ -163,11 +364,18 @@ export default function DashboardPage() {
                 >
                   Cancel
                 </button>
-                <button
-                  className="bg-green-600 text-white px-4 py-2 rounded"
+                {/* <button
+                  className="bg-gray-800 text-white px-4 py-2 rounded"
                   onClick={handleCreateState}
                 >
                   Submit
+                </button> */}
+                <button
+                  className="bg-gray-800 text-white px-4 py-2 rounded"
+                  onClick={handleCreateState}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>
@@ -202,6 +410,20 @@ export default function DashboardPage() {
                 <option value="enumerator">Enumerator</option>
               </select>
 
+              {/* States Dropdown */}
+              <label className="block mb-2 font-medium">State:</label>
+              <select
+                className="w-full p-2 border rounded-md mb-4"
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+              >
+                <option value="">Select a state</option>
+                {states.map((state, index) => (
+                  <option key={index} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
               {/* Buttons */}
               <div className="flex justify-between">
                 <button
@@ -211,10 +433,11 @@ export default function DashboardPage() {
                   Cancel
                 </button>
                 <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                  className="bg-gray-800 text-white px-4 py-2 rounded"
                   onClick={handleCreateUser}
+                  disabled={isSubmitting}
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>
@@ -232,22 +455,28 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Data</h3>
-            <p className="text-2xl font-bold">1,000</p>
+            <p className="text-2xl font-bold">0</p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total States</h3>
-            <p className="text-2xl font-bold">5</p>
+            <p className="text-2xl font-bold">{totalStates}</p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Field Coordinators</h3>
-            <p className="text-2xl font-bold">10</p>
+            <p className="text-2xl font-bold">
+              {userCounts["fieldCoordinator"] ?? 0}
+            </p>
+            {/* <p className="text-2xl font-bold">{userCounts.fieldCoordinator ?? 0}</p> */}
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Enumerators</h3>
-            <p className="text-2xl font-bold">50</p>
+            <p className="text-2xl font-bold">
+              {userCounts["enumerator"] ?? 0}
+            </p>
+            {/* <p className="text-2xl font-bold">{userCounts.enumerator ?? 0}</p> */}
           </div>
         </div>
       </div>

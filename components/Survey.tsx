@@ -8,16 +8,6 @@ import LocationApprovalModal from "@/components/LocationApprovalModal";
 import MediaCapture from "@/components/MediaCapture";
 import { toast } from "react-toastify";
 
-// interface SurveyFormProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-//   initialLocation: { 
-//     latitude: number | null; 
-//     longitude: number | null; 
-//     address?: string 
-//   } | null;
-// }
-
 type SurveyFormProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -29,7 +19,7 @@ type SurveyFormProps = {
   };
 };
 
-export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyFormProps) {
+export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFormProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   interface SurveyData {
@@ -68,7 +58,6 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
           setLoading(false);
         })
         .catch((error) => {
-          toast.error("Error fetching survey data");
           console.error("Error fetching survey data:", error);
           setLoading(false);
         });
@@ -297,7 +286,7 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
                 onClose={() => { setShowSuccessModal(false); onClose(); 
                 }} 
               />
-                            {/* Location Approval Modal */}
+              {/* Location Approval Modal */}
             <LocationApprovalModal
               isOpen={showLocationApprovalModal}
               onClose={() => setShowLocationApprovalModal(false)}

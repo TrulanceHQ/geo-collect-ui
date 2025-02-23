@@ -1,11 +1,56 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaBars, FaTimes } from "react-icons/fa"; // Import icons
+import { fetchTotalStates } from "@/services/apiService";
+import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [states, setStates] = useState<string[]>([]);
+
+  const router = useRouter(); // Move router hook here
+
+  const logout = () => {
+    // Remove stored data from localStorage
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("selectedState");
+
+    // Optionally, navigate the user to the login page or home page
+    router.push("/");
+  };
+
+  // Fetch states when component mounts
+  useEffect(() => {
+    const loadStates = async () => {
+      try {
+        const response = await fetchTotalStates();
+        console.log("Fetched States Response:", response);
+
+        // Extract ngstates from the response
+        if (Array.isArray(response.states) && response.states.length > 0) {
+          const extractedStates = response.states[0]?.ngstates || [];
+
+          // Verify if extractedStates is an array of strings
+          if (Array.isArray(extractedStates)) {
+            console.log("Extracted States:", extractedStates);
+            setStates(extractedStates);
+          } else {
+            console.error("Extracted states is not an array:", extractedStates);
+          }
+        } else {
+          console.error("Invalid response format for states:", response.states);
+        }
+      } catch (err) {
+        console.error("Error fetching states:", err);
+      }
+    };
+
+    loadStates();
+  }, []);
 
   return (
     <>
@@ -25,7 +70,11 @@ const Sidebar = () => {
       >
         <div className="p-5 text-lg font-bold">Admin Dashboard</div>
         <nav>
-          <Link href="/admin" className="block p-3 hover:bg-gray-700">
+          <Link
+            href="/admin"
+            className="block p-3 hover:bg-gray-700"
+            onClick={() => setIsOpen(false)}
+          >
             Dashboard
           </Link>
 
@@ -37,27 +86,50 @@ const Sidebar = () => {
             >
               States {isDropdownOpen ? "▲" : "▼"}
             </button>
+
             {isDropdownOpen && (
               <div className="pl-5">
-                {["Lagos", "Kano", "Rivers", "Ogun", "Kaduna"].map((state) => (
-                  <Link
-                    key={state}
-                    href={`/states/${state.toLowerCase()}`}
-                    className="block p-2 hover:bg-gray-600"
-                  >
-                    {state}
-                  </Link>
-                ))}
+                {states.length === 0 ? (
+                  <p className="text-gray-400 p-2">Loading...</p>
+                ) : (
+                  states.map((state, index) => (
+                    <Link
+                      key={index}
+                      href={`/states/${encodeURIComponent(
+                        state.toLowerCase()
+                      )}`}
+                      className="block p-2 hover:bg-gray-600"
+                      onClick={() => setIsOpen(false)} // Close sidebar when a link is clicked
+                    >
+                      {state}
+                    </Link>
+                  ))
+                )}
               </div>
             )}
           </div>
 
-          <Link href="/list-of-fieldcoordinators" className="block p-3 hover:bg-gray-700">
-        Field Coordinators
-        </Link>
-        <Link href="/questions" className="block p-3 hover:bg-gray-700">
-          Survey Questions
-        </Link>
+          <Link
+            href="/list-of-fieldcoordinators"
+            className="block p-3 hover:bg-gray-700"
+            onClick={() => setIsOpen(false)} // Close sidebar when link is clicked
+          >
+            Field Coordinators
+          </Link>
+          <Link
+            href="/questions"
+            className="block p-3 hover:bg-gray-700"
+            onClick={() => setIsOpen(false)} // Close sidebar when link is clicked
+          >
+            Survey Questions
+          </Link>
+
+          <button
+            className="bg-red-500 text-white px-4 py-1 rounded "
+            onClick={logout}
+          >
+            Log Out
+          </button>
         </nav>
       </aside>
 
@@ -73,4 +145,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
