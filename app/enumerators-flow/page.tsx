@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,11 +7,25 @@ import SurveyForm from "@/components/Survey";
 import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
 import axios from "axios";
+import { fetchEnumeratorResponses } from "@/services/apiService";
 
 export default function EnumeratorDashboard() {
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  // const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  interface Response {
+    surveyId: string;
+    enumeratorId: string;
+    responses: {
+      questionId: string;
+      answer: string | string[];
+    }[];
+    location: string;
+    mediaUrl: string;
+    submittedAt: string;
+  }
+
+  const [responses, setResponses] = useState<Response[]>([]);
+  const [totalResponses, setTotalResponses] = useState(0);
   const [location, setLocation] = useState<{
     latitude: number | null;
     longitude: number | null;
@@ -48,8 +63,22 @@ export default function EnumeratorDashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchResponses = async () => {
+      try {
+        const data: Response[] = await fetchEnumeratorResponses();
+        setResponses(data);
+        setTotalResponses(data.length);
+      } catch (error) {
+        console.error("Error fetching responses:", error);
+      }
+    };
+
+    fetchResponses();
+  }, [setResponses]);
+
   if (!isClient) {
-    return null; // Prevents server-side mismatch
+    return null;
   }
 
   return (
@@ -90,7 +119,9 @@ export default function EnumeratorDashboard() {
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Responses</h3>
-            <p className="text-2xl font-bold">540</p>
+            <p className="text-2xl font-bold">
+              {totalResponses > 0 ? totalResponses : "-"}
+            </p>
           </div>
         </div>
 
@@ -119,17 +150,12 @@ export default function EnumeratorDashboard() {
 
         {/* Survey Modal */}
         {isSurveyOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] relative">
-              <button
-                className="absolute top-2 right-4 text-gray-600 hover:text-gray-800 text-5xl"
-                onClick={() => setIsSurveyOpen(false)}
-              >
-                &times;
-              </button>
-              <SurveyForm isOpen={isSurveyOpen} onClose={() => setIsSurveyOpen(false)} location={location}/>
-            </div>
-          </div>
+              <SurveyForm 
+                isOpen={isSurveyOpen} 
+                onClose={() => setIsSurveyOpen(false)} 
+                location={location}
+                initialLocation={location}
+              />
         )}
       </div>
     </ProtectedPage>

@@ -107,27 +107,6 @@ export const createEnumerators = async (
   }
 };
 
-// Add more API functions as needed
-
-// export const createSurvey = async (
-//   title: string,
-//   subTitle: string,
-//   questions: string
-// ) => {
-//   try {
-//     const response = await axios.post(
-//       `${API_BASE_URL}/admin/questions/create`,
-//       { title, subTitle, questions }
-//     );
-//     toast.success("Survey created successfully!");
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error creating survey:", error);
-//     toast.error("Failed to create survey");
-//     throw error;
-//   }
-// };
-
 export const submitSurvey = async (surveyData: any) => {
   try {
     const token = localStorage.getItem("accessToken");
@@ -153,10 +132,10 @@ export const submitSurvey = async (surveyData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    console.log("Request payload:", response.data); 
+    // console.log("Request payload:", response.data); 
     return response.data;
   } catch (error: any) {
-    console.log("Error submitting survey:", error);
+    // console.log("Error submitting survey:", error);
     toast.error(error.response?.data?.message || "Failed to submit survey");
     throw error;
   }
@@ -213,7 +192,6 @@ export const fetchQuestionnaires = async () => {
   }
 };
 
-
 export const submitQuestionnaire = async (questionnaireData: any) => {
   try {
     const token = localStorage.getItem("accessToken");
@@ -232,11 +210,32 @@ export const submitQuestionnaire = async (questionnaireData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    console.log("Request payload:", response.data);
+    // console.log("response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.log("Error submitting survey:", error.response?.data?.message);
-    toast.error(error.response?.data?.message || "Failed to submit survey");
+    if (error.response?.data?.message === "Token verification failed") {
+      toast.error('Failed to submit survey');
+    }
     throw error;
   }
 }
+
+export const fetchEnumeratorResponses = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("Unauthorized: No access token found");
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/enumerator/survey/responses`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    throw error;
+  }
+};
