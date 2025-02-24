@@ -12,31 +12,29 @@ export default function SignInPage() {
   const [role, setRole] = useState("enumerator");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter(); // Use Next.js router for navigation
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setLoading(true);
     try {
       const data = await login(emailAddress, password);
-      console.log("Login Response:", data); // Debug API response
-
-      const role = data.role || data?.user?.role; // Handle possible nesting
-      console.log("Extracted Role:", role); // Debug role before redirecting
-      const token = data.accessToken || data?.user?.accessToken; // Handle possible nesting
-      console.log("Extracted Role:", role); // Debug role before redirecting
-      const selectedState = data.selectedState || data?.user?.selectedState; // Handle possible nesting
-      console.log("Extracted State:", selectedState); // Debug role before redirecting
-      // const fieldCoordinatorId =
-      //   data.fieldCoordinatorId || data?.user?.fieldCoordinatorId; // Handle possible nesting
-      // console.log("Extracted fieldCoordinatorId:", fieldCoordinatorId); // Debug role before redirecting
+      const role = data.role || data?.user?.role;
+      const token = data.accessToken || data?.user?.accessToken;
 
       if (role) {
         // Store user role in localStorage or a global state
         localStorage.setItem("userRole", role);
         localStorage.setItem("accessToken", token);
-        localStorage.setItem("selectedState", selectedState);
-        // localStorage.setItem("fieldCoordinatorId", fieldCoordinatorId);
+
+      if (rememberMe) {
+          localStorage.setItem("emailAddress", emailAddress);
+          localStorage.setItem("password", password);
+        } else {
+          localStorage.removeItem("emailAddress");
+          localStorage.removeItem("password");
+        }
+
         switch (role) {
           case "admin":
             router.push("/admin");
@@ -56,7 +54,7 @@ export default function SignInPage() {
     } catch (error) {
       setError("Login failed. Please check your credentials and try again.");
     } finally {
-      setLoading(false); // Set loading to false when the request completes
+      setLoading(false);
     }
   };
 
@@ -86,14 +84,6 @@ export default function SignInPage() {
 
       {/* Role Selection */}
       <label className="block mb-2 font-medium">Sign in as:</label>
-      {/* <select
-        className="w-full p-2 border rounded-md mb-4"
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-      >
-        <option value="admin">Admin</option>
-        <option value="enumerator">Enumerator</option>
-      </select> */}
 
       {/* Error Message */}
       {error && <p className="text-red-500 mb-4">{error}</p>}

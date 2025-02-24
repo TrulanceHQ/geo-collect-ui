@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use Client";
 
 import { createContext, useState, useEffect, useContext } from "react";
@@ -10,8 +11,6 @@ interface AuthContextProps {
   login: (emailAddress: string, password: string) => Promise<void>;
   logout: () => void;
 }
-
-
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

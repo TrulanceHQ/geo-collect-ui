@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,10 +6,26 @@ import { FaEdit, FaPlayCircle } from "react-icons/fa";
 import SurveyForm from "@/components/Survey";
 import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
+import { fetchEnumeratorResponses } from "@/services/apiService";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { fetchUserData, updateUserProfile } from "@/services/apiService";
 import { jwtDecode } from "jwt-decode";
+import SurveyResponsesTable from "@/components/DataList";
+import { useResponseContext } from "@/services/ResponseContext";
+
+interface Response {
+  _id: string;
+  surveyId: string;
+  enumeratorId: string;
+  responses: {
+    questionId: string;
+    answer: string | string[];
+  }[];
+  location: string;
+  mediaUrl: string;
+  submittedAt: string;
+}
 
 export default function EnumeratorDashboard() {
   const [enumeratorData, setEnumeratorData] = useState({
@@ -17,13 +34,27 @@ export default function EnumeratorDashboard() {
     emailAddress: "",
     phoneNumber: "",
   });
-
-  const [isEditMode, setIsEditMode] = useState(false); // Toggle Edit mode
   const [updatedEnumeratorData, setUpdatedEnumeratorData] = useState({
     firstName: "",
     lastName: "",
     emailAddress: "",
     phoneNumber: "",
+  });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const router = useRouter();
+  // const [responses, setResponses] = useState<Response[]>([]);
+  const { setResponses } = useResponseContext();
+  const [totalResponses, setTotalResponses] = useState(0);
+  const [isSurveyOpen, setIsSurveyOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [location, setLocation] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+    address: string;
+  }>({
+    latitude: null,
+    longitude: null,
+    address: "",
   });
 
   useEffect(() => {
@@ -92,20 +123,7 @@ export default function EnumeratorDashboard() {
       }
     }
   };
-  const [isSurveyOpen, setIsSurveyOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  // const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [location, setLocation] = useState<{
-    latitude: number | null;
-    longitude: number | null;
-    address: string;
-  }>({
-    latitude: null,
-    longitude: null,
-    address: "",
-  });
 
-  const router = useRouter();
 
   // Logout function
   const logout = () => {
@@ -113,7 +131,6 @@ export default function EnumeratorDashboard() {
     localStorage.removeItem("userRole");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("selectedState");
-
     // Redirect to login page
     router.push("/");
   };
@@ -145,13 +162,32 @@ export default function EnumeratorDashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchResponses = async () => {
+      try {
+        const data: Response[] = await fetchEnumeratorResponses();
+        setResponses(data);
+        console.log("Responses:", data);
+        setTotalResponses(data.length);
+      } catch (error) {
+        console.error("Error fetching responses:", error);
+      }
+    };
+
+    fetchResponses();
+  }, [setResponses]);
+
+  const handleViewData = () => {
+    router.push("/enumerator-responses");
+  };
+
   if (!isClient) {
-    return null; // Prevents server-side mismatch
+    return null;
   }
 
   return (
     <ProtectedPage allowedRoles={["enumerator"]} redirectPath="/">
-      <>
+      {/* <> */}
         <div>
           <button
             className="bg-red-400 text-white px-4 py-1 rounded"
@@ -249,23 +285,19 @@ export default function EnumeratorDashboard() {
           )}
           {/* Metrics Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="bg-white shadow-md rounded-lg p-4 text-center">
-              <h3 className="text-lg font-semibold">Surveys Completed</h3>
-              <p className="text-2xl font-bold">0</p>
+            <div className="bg-white shadow-md rounded-lg p-4 text-center mt-8">
+              <h3 className="text-xl font-semibold p-4">Surveys Completed</h3>
+              <p className="text-5xl font-bold mt-4">
+              {totalResponses > 0 ? totalResponses : "-"}
+            </p>
             </div>
-            {/* <div className="bg-white shadow-md rounded-lg p-4 text-center">
-            <h3 className="text-lg font-semibold">Pending Surveys</h3>
-            <p className="text-2xl font-bold">0</p>
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-4 text-center">
-            <h3 className="text-lg font-semibold">Total Responses</h3>
-            <p className="text-2xl font-bold">0</p>
-          </div> */}
-          </div>
 
           {/* Start Survey Section */}
           <div className="mt-8 bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
-            <h2 className="text-xl font-semibold">Start a New Survey</h2>
+            <h2 className="text-xl font-semibold p-4">Start a New Survey</h2>
+            <p className="text-gray-600">
+              See all the data you&apos;ve gathered from your surveys.
+            </p>
             <button
               className="mt-4 bg-gray-700 text-white px-4 py-2 rounded flex items-center space-x-2"
               onClick={() => setIsSurveyOpen(true)}
@@ -276,36 +308,31 @@ export default function EnumeratorDashboard() {
           </div>
 
           {/* View Data Section */}
-          <div className="mt-8 bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-xl font-semibold">View Collected Data</h2>
-            <p className="text-gray-600">
+          <div className="mt-8 bg-white shadow-md rounded-lg p-6 items-center flex flex-col">
+            <h2 className="text-xl font-semibold text-center p-4">View Collected Data</h2>
+            <p className="text-gray-600 text-center">
               See all the data you&apos;ve gathered from your surveys.
             </p>
-            <button className="mt-4 bg-gray-700 text-white px-4 py-2 rounded">
+            <button
+              onClick={handleViewData}
+              className="mt-4 bg-gray-700 text-white px-4 py-2 rounded"
+            >
               View Data
             </button>
           </div>
-
-          {/* Survey Modal */}
-          {isSurveyOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] relative">
-                <button
-                  className="absolute top-2 right-4 text-gray-600 hover:text-gray-800 text-5xl"
-                  onClick={() => setIsSurveyOpen(false)}
-                >
-                  &times;
-                </button>
-                <SurveyForm
-                  isOpen={isSurveyOpen}
-                  onClose={() => setIsSurveyOpen(false)}
-                  location={location}
-                />
-              </div>
-            </div>
-          )}
         </div>
-      </>
+
+        {/* Survey Modal */}
+        {isSurveyOpen && (
+              <SurveyForm 
+                isOpen={isSurveyOpen} 
+                onClose={() => setIsSurveyOpen(false)} 
+                location={location}
+                initialLocation={location}
+              />
+        )}
+
+      </div>
     </ProtectedPage>
   );
 }

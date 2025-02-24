@@ -1,14 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError } from "axios";
-import { useState } from "react";
+// import { useState } from "react";
 import { toast } from "react-toastify";
 // import jwtDecode from "jwt-decode";
 // import * as jwtDecode from "jwt-decode";
-import { jwtDecode } from "jwt-decode";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // Replace with your API base URL
 
 export const login = async (emailAddress: string, password: string) => {
   try {
@@ -196,27 +194,6 @@ export const updateUserProfile = async (
   }
 };
 
-// Add more API functions as needed
-
-// export const createSurvey = async (
-//   title: string,
-//   subTitle: string,
-//   questions: string
-// ) => {
-//   try {
-//     const response = await axios.post(
-//       `${API_BASE_URL}/admin/questions/create`,
-//       { title, subTitle, questions }
-//     );
-//     toast.success("Survey created successfully!");
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error creating survey:", error);
-//     toast.error("Failed to create survey");
-//     throw error;
-//   }
-// };
-
 export const submitSurvey = async (surveyData: any) => {
   try {
     const token = localStorage.getItem("accessToken");
@@ -242,10 +219,10 @@ export const submitSurvey = async (surveyData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    console.log("Request payload:", response.data);
+    // console.log("Request payload:", response.data); 
     return response.data;
   } catch (error: any) {
-    console.log("Error submitting survey:", error);
+    // console.log("Error submitting survey:", error);
     toast.error(error.response?.data?.message || "Failed to submit survey");
     throw error;
   }
@@ -288,22 +265,6 @@ export const createState = async (
     throw error;
   }
 };
-
-//fetch
-
-// export const fetchTotalStates = async (): Promise<number> => {
-//   try {
-//     const response = await axios.get(
-//       "http://localhost:5000/api/v1/admin/view-states"
-//     ); // Adjust API endpoint
-//     return response.data.total;
-//   } catch (error) {
-//     console.error("Error fetching total states:", error);
-//     return 0;
-//   }
-// };
-
-//fetch states
 
 interface StateResponse {
   // states: string[];
@@ -365,8 +326,6 @@ export const fetchUsersPerRole = async (): Promise<Record<string, number>> => {
     return {};
   }
 };
-
-//fetch all users
 
 // Define the User type
 export interface User {
@@ -436,11 +395,32 @@ export const submitQuestionnaire = async (questionnaireData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    console.log("Request payload:", response.data);
+    // console.log("response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.log("Error submitting survey:", error.response?.data?.message);
-    toast.error(error.response?.data?.message || "Failed to submit survey");
+    if (error.response?.data?.message === "Token verification failed") {
+      toast.error('Failed to submit survey');
+    }
+    throw error;
+  }
+}
+
+export const fetchEnumeratorResponses = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("Unauthorized: No access token found");
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/enumerator/survey/responses`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
     throw error;
   }
 };

@@ -1,19 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchQuestionnaires, submitQuestionnaire } from "@/services/apiService";
-import SubmissionSuccessModal from "./SubmissionSuccessModal";
+import { requestLocationPermission } from "@/services/util-services";
+import SubmissionSuccessModal from "@/components/SubmissionSuccessModal";
+import LocationApprovalModal from "@/components/LocationApprovalModal";
+import MediaCapture from "@/components/MediaCapture";
+import { toast } from "react-toastify";
 
-interface SurveyFormProps {
+type SurveyFormProps = {
   isOpen: boolean;
   onClose: () => void;
-  location: {
+  location: { latitude: number | null; longitude: number | null; address: string };
+  initialLocation: {
     latitude: number | null;
     longitude: number | null;
     address: string;
   };
-}
+};
 
-export default function SurveyForm({ isOpen, onClose, location}: SurveyFormProps) {
+export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFormProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   interface SurveyData {
@@ -33,6 +39,11 @@ export default function SurveyForm({ isOpen, onClose, location}: SurveyFormProps
   const [responses, setResponses] = useState<{ [key: string]: string | string[] | undefined }>({});
   const [loading, setLoading] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false); 
+  const [showLocationApprovalModal, setShowLocationApprovalModal] = useState(false);
+  const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
+  const [location, setLocation] = useState(initialLocation);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  // const [showMediaCapture, setShowMediaCapture] = useState(false);
 
   // Fetch survey data when the modal opens
   useEffect(() => {
@@ -74,21 +85,56 @@ export default function SurveyForm({ isOpen, onClose, location}: SurveyFormProps
     }));
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
-        questionId,
-        answer,
-      }));
-      const payload = { responses: formattedResponses, surveyId, location: location.address };
+    // Final submission after media upload
+    const finalSubmit = async (mediaUrl: string) => {
+      if (!location || !location.address) {
+        setShowLocationApprovalModal(true);
+        return;
+      }
+  
+      try {
+        setLoading(true);
+        const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
+          questionId,
+          answer,
+        }));
+        const payload = {
+          responses: formattedResponses,
+          surveyId,
+          location: location.address,
+          mediaUrl,
+        };
+        await submitQuestionnaire(payload);
+        setShowSuccessModal(true);
+      } catch (error) {
+        console.error("Submission failed:", error);
+      } finally {
+        setLoading(false);
+        setShowMediaUploadModal(false);
+      }
+    };
 
-      await submitQuestionnaire(payload);
-      setShowSuccessModal(true);
+    const handleMediaUploadSuccess = async (url: string) => {
+      setMediaUrl(url);
+      await finalSubmit(url);
+    };
+
+    const handleSubmit = () => {
+      if (!location || !location.address) {
+        setShowLocationApprovalModal(true);
+        return;
+      }
+      setShowMediaUploadModal(true);
+    };
+
+  const handleApproveLocation = async () => {
+    try {
+      const locationData = await requestLocationPermission();
+      console.log("Location approved:", locationData);
+      setLocation(locationData);
+      setShowLocationApprovalModal(false);
     } catch (error) {
-      console.error("Submission failed:", error);
-    } finally {
-      setLoading(false);
+      toast.error(String(error));
     }
   };
   
@@ -98,8 +144,8 @@ export default function SurveyForm({ isOpen, onClose, location}: SurveyFormProps
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-2xl p-10 rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
-          ✖
+        <button onClick={onClose} className="absolute top-2 right-2 text-5xl text-gray-500 hover:text-gray-700">
+          &times;
         </button>
 
         {loading ? (
@@ -222,10 +268,30 @@ export default function SurveyForm({ isOpen, onClose, location}: SurveyFormProps
                 </button>
               )}
             </div>
-
+            
+            {/* Media Upload Modal */}
+            {showMediaUploadModal && (
+            <MediaCapture
+                // isOpen={showMediaUploadModal}
+                // onClose={() => setShowMediaUploadModal(false)}
+                // onSubmit={finalSubmit}
+                onUploadSuccess={handleMediaUploadSuccess} 
+                onClose={ () => setShowMediaUploadModal(false)}
+            />
+            )}
 
               {/* Success Modal */}
-              <SubmissionSuccessModal isOpen={showSuccessModal} onClose={() => { setShowSuccessModal(false); onClose(); }} />
+              <SubmissionSuccessModal 
+                isOpen={showSuccessModal} 
+                onClose={() => { setShowSuccessModal(false); onClose(); 
+                }} 
+              />
+              {/* Location Approval Modal */}
+            <LocationApprovalModal
+              isOpen={showLocationApprovalModal}
+              onClose={() => setShowLocationApprovalModal(false)}
+              onApprove={handleApproveLocation}
+            />
           </>
         )}
       </div>
