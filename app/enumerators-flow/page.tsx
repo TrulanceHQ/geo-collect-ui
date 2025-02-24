@@ -11,7 +11,7 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { fetchUserData, updateUserProfile } from "@/services/apiService";
 import { jwtDecode } from "jwt-decode";
-import SurveyResponsesTable from "@/components/DataList";
+// import SurveyResponsesTable from "@/components/DataList";
 import { useResponseContext } from "@/services/ResponseContext";
 
 interface Response {
@@ -124,7 +124,6 @@ export default function EnumeratorDashboard() {
     }
   };
 
-
   // Logout function
   const logout = () => {
     // Remove stored data from localStorage
@@ -188,109 +187,109 @@ export default function EnumeratorDashboard() {
   return (
     <ProtectedPage allowedRoles={["enumerator"]} redirectPath="/">
       {/* <> */}
-        <div>
-          <button
-            className="bg-red-400 text-white px-4 py-1 rounded"
-            onClick={logout}
-          >
-            Log Out
-          </button>
+      <div>
+        <button
+          className="bg-red-400 text-white px-4 py-1 rounded"
+          onClick={logout}
+        >
+          Log Out
+        </button>
+      </div>
+      <div className="relative p-6">
+        <h1 style={{ fontSize: "1.4rem" }}>
+          <b>Enumerator</b>
+        </h1>
+        {/* Logo at the top right */}
+        <div className="absolute top-4 right-6">
+          <Image
+            src="/digiplus.png"
+            alt="Company Logo"
+            width={120}
+            height={50}
+            priority
+          />
         </div>
-        <div className="relative p-6">
-          <h1 style={{ fontSize: "1.4rem" }}>
-            <b>Enumerator</b>
-          </h1>
-          {/* Logo at the top right */}
-          <div className="absolute top-4 right-6">
-            <Image
-              src="/digiplus.png"
-              alt="Company Logo"
-              width={120}
-              height={50}
-              priority
+
+        {/* Profile Data */}
+        {isEditMode ? (
+          <div>
+            <input
+              type="text"
+              name="firstName"
+              value={updatedEnumeratorData.firstName}
+              onChange={handleInputChange}
+              className="border p-2 rounded-md mb-2"
+              placeholder="First Name"
+            />
+            <input
+              type="text"
+              name="lastName"
+              value={updatedEnumeratorData.lastName}
+              onChange={handleInputChange}
+              className="border p-2 rounded-md mb-2"
+              placeholder="Last Name"
+            />
+            <input
+              type="email"
+              name="emailAddress"
+              value={updatedEnumeratorData.emailAddress}
+              onChange={handleInputChange}
+              className="border p-2 rounded-md mb-2"
+              placeholder="Email Address"
+              disabled // This will disable editing the email field
+            />
+            <input
+              type="text"
+              name="phoneNumber"
+              value={updatedEnumeratorData.phoneNumber}
+              onChange={handleInputChange}
+              className="border p-2 rounded-md mb-2"
+              placeholder="Phone Number"
             />
           </div>
+        ) : (
+          <div>
+            <h2 className="text-xl font-semibold">
+              {`${enumeratorData?.firstName || "First Name"} ${
+                enumeratorData?.lastName || "Last Name"
+              }`}
+            </h2>
+            <p className="text-gray-600">
+              {enumeratorData?.emailAddress || "No email"}
+            </p>
+            <p className="text-gray-600">
+              {enumeratorData?.phoneNumber || "No phone number"}
+            </p>
+          </div>
+        )}
 
-          {/* Profile Data */}
-          {isEditMode ? (
-            <div>
-              <input
-                type="text"
-                name="firstName"
-                value={updatedEnumeratorData.firstName}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md mb-2"
-                placeholder="First Name"
-              />
-              <input
-                type="text"
-                name="lastName"
-                value={updatedEnumeratorData.lastName}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md mb-2"
-                placeholder="Last Name"
-              />
-              <input
-                type="email"
-                name="emailAddress"
-                value={updatedEnumeratorData.emailAddress}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md mb-2"
-                placeholder="Email Address"
-                disabled // This will disable editing the email field
-              />
-              <input
-                type="text"
-                name="phoneNumber"
-                value={updatedEnumeratorData.phoneNumber}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md mb-2"
-                placeholder="Phone Number"
-              />
-            </div>
-          ) : (
-            <div>
-              <h2 className="text-xl font-semibold">
-                {`${enumeratorData?.firstName || "First Name"} ${
-                  enumeratorData?.lastName || "Last Name"
-                }`}
-              </h2>
-              <p className="text-gray-600">
-                {enumeratorData?.emailAddress || "No email"}
-              </p>
-              <p className="text-gray-600">
-                {enumeratorData?.phoneNumber || "No phone number"}
-              </p>
-            </div>
-          )}
+        <button
+          className="text-blue-500 hover:text-blue-700"
+          onClick={() => setIsEditMode((prev) => !prev)}
+        >
+          <FaEdit size={20} />
+        </button>
+        {/* </div> */}
 
-          <button
-            className="text-blue-500 hover:text-blue-700"
-            onClick={() => setIsEditMode((prev) => !prev)}
-          >
-            <FaEdit size={20} />
-          </button>
-          {/* </div> */}
-
-          {/* Save Button (only when in Edit Mode) */}
-          {isEditMode && (
-            <div className="mt-4">
-              <button
-                className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
-                onClick={handleProfileUpdate}
-              >
-                Save Changes
-              </button>
-            </div>
-          )}
-          {/* Metrics Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="bg-white shadow-md rounded-lg p-4 text-center mt-8">
-              <h3 className="text-xl font-semibold p-4">Surveys Completed</h3>
-              <p className="text-5xl font-bold mt-4">
+        {/* Save Button (only when in Edit Mode) */}
+        {isEditMode && (
+          <div className="mt-4">
+            <button
+              className="bg-gray-800 text-white px-4 py-2 rounded w-full md:w-auto"
+              onClick={handleProfileUpdate}
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
+        {/* Metrics Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <div className="bg-white shadow-md rounded-lg p-4 text-center mt-8">
+            <h3 className="text-xl font-semibold p-4">Surveys Completed</h3>
+            <p className="text-5xl font-bold mt-4">
               {totalResponses > 0 ? totalResponses : "-"}
             </p>
-            </div>
+          </div>
 
           {/* Start Survey Section */}
           <div className="mt-8 bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
@@ -309,7 +308,9 @@ export default function EnumeratorDashboard() {
 
           {/* View Data Section */}
           <div className="mt-8 bg-white shadow-md rounded-lg p-6 items-center flex flex-col">
-            <h2 className="text-xl font-semibold text-center p-4">View Collected Data</h2>
+            <h2 className="text-xl font-semibold text-center p-4">
+              View Collected Data
+            </h2>
             <p className="text-gray-600 text-center">
               See all the data you&apos;ve gathered from your surveys.
             </p>
@@ -324,14 +325,13 @@ export default function EnumeratorDashboard() {
 
         {/* Survey Modal */}
         {isSurveyOpen && (
-              <SurveyForm 
-                isOpen={isSurveyOpen} 
-                onClose={() => setIsSurveyOpen(false)} 
-                location={location}
-                initialLocation={location}
-              />
+          <SurveyForm
+            isOpen={isSurveyOpen}
+            onClose={() => setIsSurveyOpen(false)}
+            location={location}
+            initialLocation={location}
+          />
         )}
-
       </div>
     </ProtectedPage>
   );
