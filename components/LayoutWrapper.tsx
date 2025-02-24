@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AuthProvider from "../services/AuthContext";
+import {ResponseProvider} from "@/services/ResponseContext";
 
 export default function LayoutWrapper({
   children,
@@ -22,7 +23,7 @@ export default function LayoutWrapper({
   if (!isMounted) return <div />; // Ensures hydration consistency
 
   // Define pages where the sidebar should be hidden
-  const hideSidebarOn = ["/", "/enumerators-flow", "/field-coordinators-flow"]; // Add enumerator page
+  const hideSidebarOn = ["/", "/enumerators-flow", "/field-coordinators-flow", "/enumerator-responses"]; // Add enumerator page
 
   const isAuthOrEnumeratororFieldCoord = hideSidebarOn.includes(pathname);
 
@@ -37,7 +38,9 @@ export default function LayoutWrapper({
             : "flex items-center justify-center min-h-screen bg-gray-100"
         }`}
       >
-        {children}
+        <ResponseProvider >
+          {children}
+        </ResponseProvider >
         <ToastContainer />
       </main>
       </div>

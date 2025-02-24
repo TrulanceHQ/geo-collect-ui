@@ -11,9 +11,11 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { fetchUserData, updateUserProfile } from "@/services/apiService";
 import { jwtDecode } from "jwt-decode";
-
+import SurveyResponsesTable from "@/components/DataList";
+import { useResponseContext } from "@/services/ResponseContext";
 
 interface Response {
+  _id: string;
   surveyId: string;
   enumeratorId: string;
   responses: {
@@ -40,7 +42,8 @@ export default function EnumeratorDashboard() {
   });
   const [isEditMode, setIsEditMode] = useState(false);
   const router = useRouter();
-  const [responses, setResponses] = useState<Response[]>([]);
+  // const [responses, setResponses] = useState<Response[]>([]);
+  const { setResponses } = useResponseContext();
   const [totalResponses, setTotalResponses] = useState(0);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -164,6 +167,7 @@ export default function EnumeratorDashboard() {
       try {
         const data: Response[] = await fetchEnumeratorResponses();
         setResponses(data);
+        console.log("Responses:", data);
         setTotalResponses(data.length);
       } catch (error) {
         console.error("Error fetching responses:", error);
@@ -172,6 +176,10 @@ export default function EnumeratorDashboard() {
 
     fetchResponses();
   }, [setResponses]);
+
+  const handleViewData = () => {
+    router.push("/enumerator-responses");
+  };
 
   if (!isClient) {
     return null;
@@ -277,24 +285,19 @@ export default function EnumeratorDashboard() {
           )}
           {/* Metrics Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="bg-white shadow-md rounded-lg p-4 text-center">
-              <h3 className="text-lg font-semibold">Surveys Completed</h3>
-              {totalResponses > 0 ? totalResponses : "-"}
-            </div>
-            {/* <div className="bg-white shadow-md rounded-lg p-4 text-center">
-            <h3 className="text-lg font-semibold">Pending Surveys</h3>
-            <p className="text-2xl font-bold">0</p>
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-4 text-center">
-            <h3 className="text-lg font-semibold">Total Responses</h3>
-            <p className="text-2xl font-bold">
+            <div className="bg-white shadow-md rounded-lg p-4 text-center mt-8">
+              <h3 className="text-xl font-semibold p-4">Surveys Completed</h3>
+              <p className="text-5xl font-bold mt-4">
               {totalResponses > 0 ? totalResponses : "-"}
             </p>
-          </div>
+            </div>
 
           {/* Start Survey Section */}
           <div className="mt-8 bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
-            <h2 className="text-xl font-semibold">Start a New Survey</h2>
+            <h2 className="text-xl font-semibold p-4">Start a New Survey</h2>
+            <p className="text-gray-600">
+              See all the data you&apos;ve gathered from your surveys.
+            </p>
             <button
               className="mt-4 bg-gray-700 text-white px-4 py-2 rounded flex items-center space-x-2"
               onClick={() => setIsSurveyOpen(true)}
@@ -305,12 +308,15 @@ export default function EnumeratorDashboard() {
           </div>
 
           {/* View Data Section */}
-          <div className="mt-8 bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-xl font-semibold">View Collected Data</h2>
-            <p className="text-gray-600">
+          <div className="mt-8 bg-white shadow-md rounded-lg p-6 items-center flex flex-col">
+            <h2 className="text-xl font-semibold text-center p-4">View Collected Data</h2>
+            <p className="text-gray-600 text-center">
               See all the data you&apos;ve gathered from your surveys.
             </p>
-            <button className="mt-4 bg-gray-700 text-white px-4 py-2 rounded">
+            <button
+              onClick={handleViewData}
+              className="mt-4 bg-gray-700 text-white px-4 py-2 rounded"
+            >
               View Data
             </button>
           </div>
@@ -325,6 +331,7 @@ export default function EnumeratorDashboard() {
                 initialLocation={location}
               />
         )}
+
       </div>
     </ProtectedPage>
   );
