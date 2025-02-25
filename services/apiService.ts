@@ -104,6 +104,7 @@ export const createEnumerators = async (
       creatorRole,
       selectedState,
       // fieldCoordinatorId,
+      // slls
     });
 
     const response = await axios.post(
@@ -150,7 +151,6 @@ export const fetchUserData = async (userId: string) => {
     throw error;
   }
 };
-
 
 //update user profile
 interface UpdatedData {
