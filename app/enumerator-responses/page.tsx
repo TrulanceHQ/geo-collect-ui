@@ -41,6 +41,12 @@ export default function ResponsesPage() {
 
   return (
     <div className="p-6 space-y-6 w-full">
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        onClick={() => window.history.back()}
+        >
+        Back
+      </button>
       <h1 className="text-2xl font-bold mb-4">Collected Responses</h1>
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300">

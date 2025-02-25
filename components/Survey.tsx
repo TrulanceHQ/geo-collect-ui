@@ -19,31 +19,43 @@ type SurveyFormProps = {
   };
 };
 
-export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFormProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [surveyId, setSurveyId] = useState<string | null>(null);
-  interface SurveyData {
-    _id: string;
-    title: string;
-    subtitle: string;
-    questions: {
-      question: string;
-      type: string;
-      options: string[];
-      _id: string;
-      likertQuestions: { question: string; options: string[] }[];
-    }[];
-  }
+interface Option {
+  value: string;
+  nextSection: number | null;
+}
 
+interface Question {
+  question: string;
+  type: string;
+  options: Option[];
+  _id: string;
+  likertQuestions: { question: string; options: string[] }[];
+}
+
+interface Section {
+  title: string;
+  questions: Question[];
+}
+
+interface SurveyData {
+  _id: string;
+  title: string;
+  subtitle: string;
+  sections: Section[];
+}
+
+export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyFormProps) {
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [surveyId, setSurveyId] = useState<string | null>(null);
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
   const [responses, setResponses] = useState<{ [key: string]: string | string[] | undefined }>({});
   const [loading, setLoading] = useState(true);
-  const [showSuccessModal, setShowSuccessModal] = useState(false); 
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showLocationApprovalModal, setShowLocationApprovalModal] = useState(false);
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
   const [location, setLocation] = useState(initialLocation);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  // const [showMediaCapture, setShowMediaCapture] = useState(false);
 
   // Fetch survey data when the modal opens
   useEffect(() => {
@@ -52,8 +64,9 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
       fetchQuestionnaires()
         .then(({ surveys }) => {
           if (surveys?.length > 0) {
-            setSurveyData(surveys[0]);
-            setSurveyId(surveys[0]._id);
+            const lastSurvey = surveys[surveys.length - 1];
+            setSurveyData(lastSurvey);
+            setSurveyId(lastSurvey._id);
           }
           setLoading(false);
         })
@@ -64,17 +77,29 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
     }
   }, [isOpen, surveyId]);
 
-  const questions = surveyData?.questions || [];
+  const sections = surveyData?.sections || [];
+  const currentSection = sections[currentSectionIndex] || { title: "", questions: [] };
+  const currentQuestion = currentSection.questions[currentQuestionIndex] || { question: "", type: "text", options: [], likertQuestions: [] };
 
   const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
+    const nextSectionIndex = currentQuestion.options.find(option => option.value === responses[currentQuestion._id])?.nextSection;
+    if (nextSectionIndex !== undefined && nextSectionIndex !== null) {
+      setCurrentSectionIndex(nextSectionIndex);
+      setCurrentQuestionIndex(0);
+    } else if (currentQuestionIndex < currentSection.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else if (currentSectionIndex < sections.length - 1) {
+      setCurrentSectionIndex(currentSectionIndex + 1);
+      setCurrentQuestionIndex(0);
     }
   };
 
   const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    } else if (currentSectionIndex > 0) {
+      setCurrentSectionIndex(currentSectionIndex - 1);
+      setCurrentQuestionIndex(sections[currentSectionIndex - 1].questions.length - 1);
     }
   };
 
@@ -85,47 +110,47 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
     }));
   };
 
-    // Final submission after media upload
-    const finalSubmit = async (mediaUrl: string) => {
-      if (!location || !location.address) {
-        setShowLocationApprovalModal(true);
-        return;
-      }
-  
-      try {
-        setLoading(true);
-        const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
-          questionId,
-          answer,
-        }));
-        const payload = {
-          responses: formattedResponses,
-          surveyId,
-          location: location.address,
-          mediaUrl,
-        };
-        await submitQuestionnaire(payload);
-        setShowSuccessModal(true);
-      } catch (error) {
-        console.error("Submission failed:", error);
-      } finally {
-        setLoading(false);
-        setShowMediaUploadModal(false);
-      }
-    };
+  // Final submission after media upload
+  const finalSubmit = async (mediaUrl: string) => {
+    if (!location || !location.address) {
+      setShowLocationApprovalModal(true);
+      return;
+    }
 
-    const handleMediaUploadSuccess = async (url: string) => {
-      setMediaUrl(url);
-      await finalSubmit(url);
-    };
+    try {
+      setLoading(true);
+      const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
+        questionId,
+        answer,
+      }));
+      const payload = {
+        responses: formattedResponses,
+        surveyId,
+        location: location.address,
+        mediaUrl,
+      };
+      await submitQuestionnaire(payload);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Submission failed:", error);
+    } finally {
+      setLoading(false);
+      setShowMediaUploadModal(false);
+    }
+  };
 
-    const handleSubmit = () => {
-      if (!location || !location.address) {
-        setShowLocationApprovalModal(true);
-        return;
-      }
-      setShowMediaUploadModal(true);
-    };
+  const handleMediaUploadSuccess = async (url: string) => {
+    setMediaUrl(url);
+    await finalSubmit(url);
+  };
+
+  const handleSubmit = () => {
+    if (!location || !location.address) {
+      setShowLocationApprovalModal(true);
+      return;
+    }
+    setShowMediaUploadModal(true);
+  };
 
   const handleApproveLocation = async () => {
     try {
@@ -137,7 +162,6 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
       toast.error(String(error));
     }
   };
-  
 
   if (!isOpen) return null;
 
@@ -157,89 +181,88 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
 
             <div className="relative min-h-[200px] mt-4">
               <AnimatePresence mode="wait">
-                {questions[currentIndex] && (
+                {currentQuestion && (
                   <motion.div
-                    key={questions[currentIndex]._id}
+                    key={currentQuestion._id}
                     initial={{ x: 100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -100, opacity: 0 }}
                     transition={{ duration: 0.5, ease: "easeInOut" }}
                     className="w-full"
                   >
-                    <h3 className="text-lg font-semibold mb-2">{questions[currentIndex].question}</h3>
+                    <h3 className="text-lg font-semibold mb-2">{currentQuestion.question}</h3>
 
                     {/* Render Question Type */}
                     <div>
-                      {questions[currentIndex].type === "single-choice" &&
-                        questions[currentIndex].options.map((option: string, index: number) => (
+                      {currentQuestion.type === "single-choice" &&
+                        currentQuestion.options.map((option, index) => (
                           <div key={index} className="flex items-center space-x-2 mb-2">
                             <input
                               type="radio"
-                              name={questions[currentIndex]._id}
-                              value={option}
-                              checked={responses[questions[currentIndex]._id] === option}
-                              onChange={() => handleResponseChange(questions[currentIndex]._id, option)}
+                              name={currentQuestion._id}
+                              value={option.value}
+                              checked={responses[currentQuestion._id] === option.value}
+                              onChange={() => handleResponseChange(currentQuestion._id, option.value)}
                               className="w-4 h-4"
                             />
-                            <label className="cursor-pointer">{option}</label>
+                            <label className="cursor-pointer">{option.value}</label>
                           </div>
                         ))}
 
-                      {questions[currentIndex].type === "multiple-choice" &&
-                        questions[currentIndex].options.map((option: string, index: number) => (
+                      {currentQuestion.type === "multiple-choice" &&
+                        currentQuestion.options.map((option, index) => (
                           <div key={index} className="flex items-center space-x-2 mb-2">
                             <input
                               type="checkbox"
-                              value={option}
-                              checked={responses[questions[currentIndex]._id]?.includes(option) || false}
+                              value={option.value}
+                              checked={responses[currentQuestion._id]?.includes(option.value) || false}
                               onChange={(e) => {
                                 const newValue = e.target.checked
-                                  ? [...(responses[questions[currentIndex]._id] || []), option]
-                                  : (responses[questions[currentIndex]._id] as string[] | undefined)?.filter(
-                                      (item) => item !== option
+                                  ? [...(responses[currentQuestion._id] || []), option.value]
+                                  : (responses[currentQuestion._id] as string[] | undefined)?.filter(
+                                      (item) => item !== option.value
                                     );
-                                handleResponseChange(questions[currentIndex]._id, newValue);
+                                handleResponseChange(currentQuestion._id, newValue);
                               }}
                               className="w-4 h-4"
                             />
-                            <label className="cursor-pointer">{option}</label>
+                            <label className="cursor-pointer">{option.value}</label>
                           </div>
                         ))}
 
-                      {questions[currentIndex].type === "text" && (
+                      {currentQuestion.type === "text" && (
                         <textarea
                           className="w-full border p-2 rounded-lg"
                           placeholder="Type your response..."
-                          value={responses[questions[currentIndex]._id] || ""}
-                          onChange={(e) => handleResponseChange(questions[currentIndex]._id, e.target.value)}
+                          value={responses[currentQuestion._id] || ""}
+                          onChange={(e) => handleResponseChange(currentQuestion._id, e.target.value)}
                         />
                       )}
 
-                        {questions[currentIndex].type === "likert-scale" && (
-                          <div className="space-y-4">
-                            {questions[currentIndex].likertQuestions.map((likertQ, idx) => (
-                              <div key={idx} className="flex flex-col">
-                                <span className="font-medium">{likertQ.question}</span>
-                                <div className="flex flex-wrap justify-between mt-2 gap-2">
-                                  {likertQ.options.map((option: string, optionIdx: number) => (
-                                    <label key={optionIdx} className="flex flex-col items-center">
-                                      <input
-                                        type="radio"
-                                        name={`${questions[currentIndex]._id}-${idx}`}
-                                        value={option}
-                                        checked={responses[`${questions[currentIndex]._id}-${idx}`] === option}
-                                        onChange={() => handleResponseChange(`${questions[currentIndex]._id}-${idx}`, option)}
-                                        className="w-4 h-4"
-                                      />
-                                      <span className="text-sm">{option}</span>
-                                    </label>
-                                  ))}
-                                </div>
+                      {currentQuestion.type === "likert-scale" && (
+                        <div className="space-y-4">
+                          {currentQuestion.likertQuestions.map((likertQ, idx) => (
+                            <div key={idx} className="flex flex-col">
+                              <span className="font-medium">{likertQ.question}</span>
+                              <div className="flex flex-wrap justify-between mt-2 gap-2">
+                                {likertQ.options.map((option, optionIdx) => (
+                                  <label key={optionIdx} className="flex flex-col items-center">
+                                    <input
+                                      type="radio"
+                                      name={`${currentQuestion._id}-${idx}`}
+                                      value={option}
+                                      checked={responses[`${currentQuestion._id}-${idx}`] === option}
+                                      onChange={() => handleResponseChange(`${currentQuestion._id}-${idx}`, option)}
+                                      className="w-4 h-4"
+                                    />
+                                    <span className="text-sm">{option}</span>
+                                  </label>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        )}
-
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -249,13 +272,13 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
             <div className="flex justify-between mt-4">
               <button
                 onClick={handlePrev}
-                disabled={currentIndex === 0}
+                disabled={currentSectionIndex === 0 && currentQuestionIndex === 0}
                 className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
               >
                 Previous
               </button>
 
-              {currentIndex === questions.length - 1 ? (
+              {currentSectionIndex === sections.length - 1 && currentQuestionIndex === currentSection.questions.length - 1 ? (
                 <button onClick={handleSubmit} className="px-6 py-2 bg-green-500 text-white rounded">
                   Submit
                 </button>
@@ -268,25 +291,25 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
                 </button>
               )}
             </div>
-            
+
             {/* Media Upload Modal */}
             {showMediaUploadModal && (
-            <MediaCapture
-                // isOpen={showMediaUploadModal}
-                // onClose={() => setShowMediaUploadModal(false)}
-                // onSubmit={finalSubmit}
-                onUploadSuccess={handleMediaUploadSuccess} 
-                onClose={ () => setShowMediaUploadModal(false)}
-            />
+              <MediaCapture
+                onUploadSuccess={handleMediaUploadSuccess}
+                onClose={() => setShowMediaUploadModal(false)}
+              />
             )}
 
-              {/* Success Modal */}
-              <SubmissionSuccessModal 
-                isOpen={showSuccessModal} 
-                onClose={() => { setShowSuccessModal(false); onClose(); 
-                }} 
-              />
-              {/* Location Approval Modal */}
+            {/* Success Modal */}
+            <SubmissionSuccessModal
+              isOpen={showSuccessModal}
+              onClose={() => {
+                setShowSuccessModal(false);
+                onClose();
+              }}
+            />
+
+            {/* Location Approval Modal */}
             <LocationApprovalModal
               isOpen={showLocationApprovalModal}
               onClose={() => setShowLocationApprovalModal(false)}
@@ -298,4 +321,3 @@ export default function SurveyForm({ isOpen, onClose, initialLocation}: SurveyFo
     </div>
   );
 }
-
