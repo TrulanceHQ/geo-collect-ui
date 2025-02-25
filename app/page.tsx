@@ -21,13 +21,15 @@ export default function SignInPage() {
       const data = await login(emailAddress, password);
       const role = data.role || data?.user?.role;
       const token = data.accessToken || data?.user?.accessToken;
+      const selectedState = data.selectedState || data?.user?.selectedState;
 
       if (role) {
         // Store user role in localStorage or a global state
         localStorage.setItem("userRole", role);
         localStorage.setItem("accessToken", token);
+        localStorage.setItem("selectedState", selectedState);
 
-      if (rememberMe) {
+        if (rememberMe) {
           localStorage.setItem("emailAddress", emailAddress);
           localStorage.setItem("password", password);
         } else {

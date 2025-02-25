@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError } from "axios";
+import { jwtDecode } from "jwt-decode";
 // import { useState } from "react";
 import { toast } from "react-toastify";
 // import jwtDecode from "jwt-decode";
@@ -41,7 +42,10 @@ export const createUsers = async (
       throw new Error("No token found");
     }
 
-    console.log(emailAddress, role, selectedState, creatorRole);
+    const decodedToken = jwtDecode(token);
+    const adminId = decodedToken.sub;
+
+    console.log(emailAddress, role, selectedState, creatorRole, adminId);
     const response = await axios.post(
       `${API_BASE_URL}/create-user`,
       {
@@ -49,6 +53,7 @@ export const createUsers = async (
         role,
         creatorRole,
         selectedState,
+        adminId,
       },
       {
         headers: {
@@ -61,6 +66,7 @@ export const createUsers = async (
       role,
       creatorRole,
       selectedState,
+      adminId,
     });
     toast.success("User created successful");
     return response.data;
@@ -76,8 +82,6 @@ export const createEnumerators = async (
   emailAddress: string,
   role: string,
   creatorRole: string
-
-  // selectedState: string
 ) => {
   try {
     // Retrieve token from local storage (or wherever you store the user's token)
@@ -85,6 +89,14 @@ export const createEnumerators = async (
     if (!token) {
       throw new Error("No token found");
     }
+    const decodedToken = jwtDecode(token);
+    const fieldCoordinatorId = decodedToken.sub;
+
+    //new
+    // Generate a unique ID for the enumerator
+    // const enumeratorId = uuidv4();
+
+    //new ends
 
     // Dynamically retrieve the selectedState for fieldCoordinator
     const getUserState = () => {
@@ -101,7 +113,8 @@ export const createEnumerators = async (
       role,
       creatorRole,
       selectedState,
-      // fieldCoordinatorId,
+      fieldCoordinatorId,
+      // enumeratorId,
     });
 
     const response = await axios.post(
@@ -111,7 +124,7 @@ export const createEnumerators = async (
         role,
         creatorRole,
         selectedState,
-        // fieldCoordinatorId,
+        fieldCoordinatorId,
       },
       {
         headers: {
@@ -124,7 +137,7 @@ export const createEnumerators = async (
       role,
       creatorRole,
       selectedState,
-      // fieldCoordinatorId,
+      fieldCoordinatorId,
     });
     toast.success("User created successful");
     return response.data;
@@ -133,6 +146,51 @@ export const createEnumerators = async (
 
     toast.error(errorMessage);
     throw error;
+  }
+};
+
+// export const getEnumeratorCountByFieldCoordinator = async (fieldCoordinatorId) => {
+//   try {
+//     const response = await axios.get(`${API_BASE_URL}/count-enumerators/${fieldCoordinatorId}`);
+//     return response.data;
+//   } catch (error) {
+//     throw new Error('Failed to fetch enumerator count');
+//   }
+// };
+
+// export const getEnumeratorCountByFieldCoordinator = async (
+//   fieldCoordinatorId: string
+// ): Promise<number> => {
+//   try {
+//     const response = await axios.get(
+//       `${API_BASE_URL}/count-enumerators/${fieldCoordinatorId}`
+//     );
+//     return response.data;
+//   } catch (error) {
+//     throw new Error("Failed to fetch enumerator count");
+//   }
+// };
+
+export const getEnumeratorCountByFieldCoordinator = async (
+  fieldCoordinatorId: string
+): Promise<number> => {
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/count-enumerators/${fieldCoordinatorId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to fetch enumerator count");
   }
 };
 
@@ -219,7 +277,7 @@ export const submitSurvey = async (surveyData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    // console.log("Request payload:", response.data); 
+    // console.log("Request payload:", response.data);
     return response.data;
   } catch (error: any) {
     // console.log("Error submitting survey:", error);
@@ -399,11 +457,11 @@ export const submitQuestionnaire = async (questionnaireData: any) => {
     return response.data;
   } catch (error: any) {
     if (error.response?.data?.message === "Token verification failed") {
-      toast.error('Failed to submit survey');
+      toast.error("Failed to submit survey");
     }
     throw error;
   }
-}
+};
 
 export const fetchEnumeratorResponses = async () => {
   try {
@@ -412,11 +470,14 @@ export const fetchEnumeratorResponses = async () => {
       throw new Error("Unauthorized: No access token found");
     }
 
-    const response = await axios.get(`${API_BASE_URL}/enumerator/survey/responses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/survey/responses`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {

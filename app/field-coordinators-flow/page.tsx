@@ -7,17 +7,13 @@ import ProtectedPage from "@/components/ProtectedPage";
 import {
   createEnumerators,
   fetchUserData,
+  getEnumeratorCountByFieldCoordinator,
   updateUserProfile,
 } from "@/services/apiService";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { FaEdit } from "react-icons/fa";
-
-// Dynamically import SurveyForm to avoid hydration errors
-// const SurveyForm = dynamic(() => import("@/components/Survey"), {
-//   ssr: false, // Prevents SSR, ensuring it only loads on the client
-// });
 
 export default function FieldCoordinatorsDashboard() {
   const [fieldCoordData, setFieldCoordData] = useState({
@@ -26,6 +22,9 @@ export default function FieldCoordinatorsDashboard() {
     emailAddress: "",
     phoneNumber: "",
   });
+
+  const [enumeratorCount, setEnumeratorCount] = useState(0);
+  // const [error, setError] = useState('');
 
   const [isEditMode, setIsEditMode] = useState(false); // Toggle Edit mode
   const [updatedFieldCoordData, setUpdatedFieldCoordData] = useState({
@@ -64,6 +63,10 @@ export default function FieldCoordinatorsDashboard() {
           emailAddress: data.emailAddress || "",
           phoneNumber: data.phoneNumber || "",
         });
+
+        // Fetch enumerator count
+        const count = await getEnumeratorCountByFieldCoordinator(userId);
+        setEnumeratorCount(count);
       } catch (error) {
         console.error("Error decoding token or fetching user data:", error);
       }
@@ -103,7 +106,7 @@ export default function FieldCoordinatorsDashboard() {
   };
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [email, setEmail] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
   const [role, setRole] = useState("enumerator");
   // const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isDataVisible, setIsDataVisible] = useState(false);
@@ -135,7 +138,7 @@ export default function FieldCoordinatorsDashboard() {
     const creatorRole = "fieldCoordinator";
 
     try {
-      const data = await createEnumerators(email, role, creatorRole);
+      const data = await createEnumerators(emailAddress, role, creatorRole);
       console.log("User created successfully:", data); // Log the success
       setSuccess("User created successfully!");
       setIsFormOpen(false); // Close the form/modal after successful creation
@@ -301,7 +304,11 @@ export default function FieldCoordinatorsDashboard() {
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Enumerators</h3>
-            <p className="text-2xl font-bold">0</p>
+            {error ? (
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <p className="text-2xl font-bold">{enumeratorCount}</p>
+            )}
           </div>
         </div>
 
@@ -325,8 +332,8 @@ export default function FieldCoordinatorsDashboard() {
                 type="email"
                 className="w-full p-2 border rounded-md mb-4"
                 placeholder="Enter email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
               />
               <label className="block mb-2 font-medium">Role:</label>
               <select
