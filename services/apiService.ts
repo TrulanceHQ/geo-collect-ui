@@ -104,7 +104,6 @@ export const createEnumerators = async (
       creatorRole,
       selectedState,
       // fieldCoordinatorId,
-      // slls
     });
 
     const response = await axios.post(
