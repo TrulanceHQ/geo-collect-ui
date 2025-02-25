@@ -92,9 +92,10 @@ export const createUsers = async (
     toast.success("User created successful");
     return response.data;
   } catch (error) {
-    const errorMessage = "Failed to create user";
+    console.error("Error creating user:", error);
+    // const errorMessage = "Failed to create user";
 
-    toast.error(errorMessage);
+    // toast.error(errorMessage);
     throw error;
   }
 };
@@ -163,9 +164,9 @@ export const createEnumerators = async (
     toast.success("User created successful");
     return response.data;
   } catch (error) {
-    const errorMessage = "Failed to create user";
+    // const errorMessage = "Failed to create user";
 
-    toast.error(errorMessage);
+    // toast.error(errorMessage);
     throw error;
   }
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
@@ -12,6 +13,7 @@ import {
 import ProtectedPage from "@/components/ProtectedPage";
 import { AxiosError } from "axios";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 
 export default function DashboardPage() {
   const [adminData, setAdminData] = useState({
@@ -152,19 +154,26 @@ export default function DashboardPage() {
         creatorRole,
         selectedState
       );
-      console.log("User created successfully:", data);
+      // console.log("User created successfully:", data);
       setSuccess("User created successfully!");
       setIsFormOpen(false);
       setError("");
+      toast.success("User created successfully!");
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 403) {
           setError("You do not have permission to create users.");
+          toast.error("You do not have permission to create users.");
+        } else if (error.response?.status === 409 && error.response?.data?.message === "Email address has been used by another customer") {
+          setError("Email address has been used by another customer.");
+          toast.error("Email address has been used by another customer.");
         } else {
           setError("Failed to create user. Please try again.");
+          toast.error("Failed to create user. Please try again.");
         }
       } else {
         setError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred.");
       }
       setSuccess("");
     } finally {
@@ -181,7 +190,7 @@ export default function DashboardPage() {
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
-      console.log("States created successfully:", data);
+      // console.log("States created successfully:", data);
       // setStateSuccess("States created successfully!");
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
