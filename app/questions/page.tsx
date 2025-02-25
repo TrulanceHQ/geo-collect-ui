@@ -73,7 +73,7 @@ export default function Questions() {
     typingTimeout.current = setTimeout(() => {
       setIsAutoSaving(true);
       // saveFormAsDraft();
-      setTimeout(() => setIsAutoSaving(false), 500); // Add delay for UX
+      setTimeout(() => setIsAutoSaving(false), 500); // Add dellay for UX
     }, 1000);
   };
 
