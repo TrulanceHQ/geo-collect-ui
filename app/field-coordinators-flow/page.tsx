@@ -219,7 +219,7 @@ export default function FieldCoordinatorsDashboard() {
           className="bg-gray-400 text-white px-4 py-1 rounded w-full sm:w-auto"
           onClick={handleResetPassword}
         >
-          Update Passwords
+          Update Password
         </button>
         <div className="relative p-6">
           <h1 style={{ fontSize: "1.4rem" }}>
