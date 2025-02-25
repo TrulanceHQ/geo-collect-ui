@@ -40,7 +40,7 @@ export default function Questions() {
     { title: string; questions: Question[] }[]
   >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  // const [isAutoSaving, setIsAutoSaving] = useState(false);
 
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -54,14 +54,14 @@ export default function Questions() {
     toast("Form saved as draft!");
   };
 
-  const handleTyping = () => {
-    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+  // const handleTyping = () => {
+  //   if (typingTimeout.current) clearTimeout(typingTimeout.current);
 
-    typingTimeout.current = setTimeout(() => {
-      setIsAutoSaving(true);
-      setTimeout(() => setIsAutoSaving(false), 500); // Add delay for UX
-    }, 1000);
-  };
+  //   typingTimeout.current = setTimeout(() => {
+  //     setIsAutoSaving(true);
+  //     setTimeout(() => setIsAutoSaving(false), 500); // Add delay for UX
+  //   }, 1000);
+  // };
 
   const loadFormFromDraft = () => {
     const savedForm = localStorage.getItem("formDraft");
@@ -339,7 +339,7 @@ export default function Questions() {
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
-              handleTyping();
+              // handleTyping();
             }}
           />
           <label className="block mb-2 font-medium">Survey Sub-title:</label>
@@ -350,7 +350,7 @@ export default function Questions() {
             value={subtitle}
             onChange={(e) => {
               setSubtitle(e.target.value);
-              handleTyping();
+              // handleTyping();
             }}
           />
           {sections.map((section, sectionIndex) => (
