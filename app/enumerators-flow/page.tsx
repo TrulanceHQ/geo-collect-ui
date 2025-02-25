@@ -11,8 +11,8 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { fetchUserData, updateUserProfile } from "@/services/apiService";
 import { jwtDecode } from "jwt-decode";
-// import SurveyResponsesTable from "@/components/DataList";
 import { useResponseContext } from "@/services/ResponseContext";
+import ResetPasswordModal from "@/components/ResetPasswordModal";
 
 interface Response {
   _id: string;
@@ -46,6 +46,8 @@ export default function EnumeratorDashboard() {
   const { setResponses } = useResponseContext();
   const [totalResponses, setTotalResponses] = useState(0);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [userId, setUserId] = useState("");
   const [isClient, setIsClient] = useState(false);
   const [location, setLocation] = useState<{
     latitude: number | null;
@@ -165,7 +167,11 @@ export default function EnumeratorDashboard() {
     const fetchResponses = async () => {
       try {
         const data: Response[] = await fetchEnumeratorResponses();
-        setResponses(data);
+        const surveyResponses = data.map(response => ({
+          ...response,
+          surveyId: { _id: response.surveyId, title: "" } // Adjust the title as needed
+        }));
+        setResponses(surveyResponses);
         console.log("Responses:", data);
         setTotalResponses(data.length);
       } catch (error) {
@@ -180,6 +186,18 @@ export default function EnumeratorDashboard() {
     router.push("/enumerator-responses");
   };
 
+  const handleResetPassword = () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Unauthorized: No access token found");
+      return;
+    }
+
+    const decodedToken = jwtDecode<{ sub: string }>(token);
+    setUserId(decodedToken.sub);
+    setIsResetPasswordOpen(true);
+  };
+
   if (!isClient) {
     return null;
   }
@@ -187,12 +205,18 @@ export default function EnumeratorDashboard() {
   return (
     <ProtectedPage allowedRoles={["enumerator"]} redirectPath="/">
       {/* <> */}
-      <div>
+      <div className="flex flex-col sm:flex-row justify-between items-center p-4 w-full sm:w-1/4 space-y-2 sm:space-y-0 sm:space-x-2">
         <button
-          className="bg-red-400 text-white px-4 py-1 rounded"
+          className="bg-red-400 text-white px-4 py-1 rounded w-full sm:w-auto"
           onClick={logout}
         >
           Log Out
+        </button>
+        <button
+          className="bg-purple-400 text-white px-4 py-1 rounded w-full sm:w-auto"
+          onClick={handleResetPassword}
+        >
+          Update Password
         </button>
       </div>
       <div className="relative p-6">
@@ -332,6 +356,13 @@ export default function EnumeratorDashboard() {
             initialLocation={location}
           />
         )}
+
+          {/* Reset Password Modal */}
+          <ResetPasswordModal
+          isOpen={isResetPasswordOpen}
+          onClose={() => setIsResetPasswordOpen(false)}
+          userId={userId}
+        />
       </div>
     </ProtectedPage>
   );

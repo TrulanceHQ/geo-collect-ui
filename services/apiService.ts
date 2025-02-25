@@ -2,13 +2,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError } from "axios";
 import { jwtDecode } from "jwt-decode";
-// import { useState } from "react";
-import { useState } from "react";
 import { toast } from "react-toastify";
-// import jwtDecode from "jwt-decode";
-// import * as jwtDecode from "jwt-decode";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+interface StateResponse {
+  // states: string[];
+  states: {
+    ngstates: string[];
+  }[];
+  total: number;
+}
+export interface User {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  emailAddress: string;
+  role: "admin" | "enumerator" | "fieldCoordinator";
+  creatorRole?: "admin" | "enumerator" | "fieldCoordinator";
+  selectedState?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  gender?: "male" | "female";
+  phoneNumber?: string;
+  image?: string;
+}
 
 export const login = async (emailAddress: string, password: string) => {
   try {
@@ -149,28 +169,6 @@ export const createEnumerators = async (
     throw error;
   }
 };
-
-// export const getEnumeratorCountByFieldCoordinator = async (fieldCoordinatorId) => {
-//   try {
-//     const response = await axios.get(`${API_BASE_URL}/count-enumerators/${fieldCoordinatorId}`);
-//     return response.data;
-//   } catch (error) {
-//     throw new Error('Failed to fetch enumerator count');
-//   }
-// };
-
-// export const getEnumeratorCountByFieldCoordinator = async (
-//   fieldCoordinatorId: string
-// ): Promise<number> => {
-//   try {
-//     const response = await axios.get(
-//       `${API_BASE_URL}/count-enumerators/${fieldCoordinatorId}`
-//     );
-//     return response.data;
-//   } catch (error) {
-//     throw new Error("Failed to fetch enumerator count");
-//   }
-// };
 
 export const getEnumeratorCountByFieldCoordinator = async (
   fieldCoordinatorId: string
@@ -325,15 +323,6 @@ export const createState = async (
   }
 };
 
-interface StateResponse {
-  // states: string[];
-  states: {
-    ngstates: string[];
-  }[];
-  total: number;
-}
-
-// export const fetchTotalStates = async (): Promise<number> => {
 export const fetchTotalStates = async (): Promise<StateResponse> => {
   try {
     const token = localStorage.getItem("accessToken"); // Retrieve token from storage
@@ -366,6 +355,7 @@ export const fetchTotalStates = async (): Promise<StateResponse> => {
     return { states: [], total: 0 };
   }
 };
+
 export const fetchUsersPerRole = async (): Promise<Record<string, number>> => {
   try {
     const token = localStorage.getItem("accessToken"); // Retrieve token from storage
@@ -387,22 +377,6 @@ export const fetchUsersPerRole = async (): Promise<Record<string, number>> => {
 };
 
 // Define the User type
-export interface User {
-  _id: string;
-  firstName?: string;
-  lastName?: string;
-  emailAddress: string;
-  role: "admin" | "enumerator" | "fieldCoordinator";
-  creatorRole?: "admin" | "enumerator" | "fieldCoordinator";
-  selectedState?: string;
-  isActive?: boolean;
-  isVerified?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  gender?: "male" | "female";
-  phoneNumber?: string;
-  image?: string;
-}
 
 export const fetchAllUsers = async (): Promise<User[]> => {
   try {
@@ -423,6 +397,7 @@ export const fetchAllUsers = async (): Promise<User[]> => {
     return [];
   }
 };
+
 export const fetchQuestionnaires = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/enumerator/survey/all`);
@@ -484,5 +459,38 @@ export const fetchEnumeratorResponses = async () => {
   } catch (error) {
     console.error("Error fetching user data:", error);
     throw error;
+  }
+};
+
+export const updateUserPassword = async (
+  userId: string,
+  oldPassword: string,
+  newPassword: string
+): Promise<any> => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    throw new Error("Token not found"); // Handle token absence appropriately
+  }
+
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/change-password/${userId}`,
+      { oldPassword, newPassword },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data; 
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      throw new Error(
+        error.response?.data?.message || "Error updating passwprd"
+      );
+    } else {
+      throw new Error("Unexpected error occurred while updating password");
+    }
   }
 };
