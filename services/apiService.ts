@@ -111,7 +111,7 @@ export const createEnumerators = async (
       throw new Error("No token found");
     }
     const decodedToken = jwtDecode(token);
-    const fieldCoordinatorId = decodedToken.sub;
+    // const fieldCoordinatorId = decodedToken.sub;
 
     //new
     // Generate a unique ID for the enumerator
@@ -134,7 +134,7 @@ export const createEnumerators = async (
       role,
       creatorRole,
       selectedState,
-      fieldCoordinatorId,
+      // fieldCoordinatorId,
       // enumeratorId,
     });
 
@@ -145,7 +145,7 @@ export const createEnumerators = async (
         role,
         creatorRole,
         selectedState,
-        fieldCoordinatorId,
+        // fieldCoordinatorId,
       },
       {
         headers: {
@@ -158,7 +158,7 @@ export const createEnumerators = async (
       role,
       creatorRole,
       selectedState,
-      fieldCoordinatorId,
+      // fieldCoordinatorId,
     });
     toast.success("User created successful");
     return response.data;
@@ -483,7 +483,7 @@ export const updateUserPassword = async (
         },
       }
     );
-    return response.data; 
+    return response.data;
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
       throw new Error(
