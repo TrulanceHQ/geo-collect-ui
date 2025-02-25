@@ -12,6 +12,7 @@ import {
 import ProtectedPage from "@/components/ProtectedPage";
 import { AxiosError } from "axios";
 import { jwtDecode } from "jwt-decode";
+import ResetPasswordModal from "@/components/ResetPasswordModal";
 
 export default function DashboardPage() {
   const [adminData, setAdminData] = useState({
@@ -105,6 +106,8 @@ export default function DashboardPage() {
   const [stateName, setStateName] = useState<string[]>([]);
   const [newState, setNewState] = useState(""); // Temporary input for a single state
   const [totalStates, setTotalStates] = useState<number>(0); // Store total count
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [userId, setUserId] = useState("");
 
   //fetch states from backend for add user
 
@@ -202,9 +205,27 @@ export default function DashboardPage() {
     }
   };
 
+  const handleResetPassword = () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Unauthorized: No access token found");
+      return;
+    }
+
+    const decodedToken = jwtDecode<{ sub: string }>(token);
+    setUserId(decodedToken.sub);
+    setIsResetPasswordOpen(true);
+  };
+
   return (
     <ProtectedPage allowedRoles={["admin"]} redirectPath="/">
       <div className="p-6">
+        <button
+          className="bg-gray-400 text-white px-4 py-1 rounded w-full sm:w-auto"
+          onClick={handleResetPassword}
+        >
+          Update Password
+        </button>
         {/* Profile Section */}
         <div className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row items-center space-y-4 md:space-x-6">
           <div className="flex-1 text-center md:text-left">
@@ -480,6 +501,15 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Reset Password Modal */}
+      <ResetPasswordModal
+        isOpen={isResetPasswordOpen}
+        onClose={() => setIsResetPasswordOpen(false)}
+        userId={userId}
+      />
+
+      {/* </div> */}
     </ProtectedPage>
   );
 }

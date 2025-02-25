@@ -1,3 +1,5 @@
+// Working starts
+
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -10,6 +12,11 @@ interface LikertQuestion {
   options: string[];
 }
 
+interface Option {
+  value: string;
+  nextSection: number | null; // Add nextSection property
+}
+
 interface Question {
   question: string;
   type:
@@ -20,7 +27,8 @@ interface Question {
     | "record-audio"
     | "record-video"
     | "take-picture";
-  options: string[];
+  // options: string[];
+  options: Option[]; // Update options to use the Option interface
   likertQuestions: LikertQuestion[];
 }
 
@@ -28,40 +36,19 @@ export default function Questions() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      question: "Question 1",
-      type: "likert-scale",
-      options: [],
-      likertQuestions: [],
-    },
-  ]);
-  //   const [mediaInstruction, setMediaInstruction] = useState("");
-  //   const [mediaType, setMediaType] = useState("");
+  const [sections, setSections] = useState<
+    { title: string; questions: Question[] }[]
+  >([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false); // New state to track submission
-  const [isAutoSaving, setIsAutoSaving] = useState(false); // State to track auto-saving status
-
-  // {
-  //   isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
-  // }
-
-  // {
-  //   isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
-  // }
-  {
-    isAutoSaving && <p className="text-gray-500">Auto-saving...</p>;
-  }
-
-  // let typingTimeout: NodeJS.Timeout;
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Save form data to localStorage
   const saveFormAsDraft = () => {
     const formData = {
       title,
       subtitle,
-      questions,
+      sections,
     };
     localStorage.setItem("formDraft", JSON.stringify(formData));
     toast("Form saved as draft!");
@@ -72,181 +59,155 @@ export default function Questions() {
 
     typingTimeout.current = setTimeout(() => {
       setIsAutoSaving(true);
-      // saveFormAsDraft();
       setTimeout(() => setIsAutoSaving(false), 500); // Add delay for UX
     }, 1000);
   };
 
-  // const handleTyping = () => {
-  //   clearTimeout(typingTimeout); // Clear previous timeout
-
-  //   //test
-
-  //   // Set a new timeout to save after a delay (e.g., 1 second of idle time)
-  //   typingTimeout = setTimeout(() => {
-  //     setIsAutoSaving(true); // Show the "Auto-saving..." indicator
-  //     saveFormAsDraft(); // Auto-save after pause
-  //     setIsAutoSaving(false); // Hide the "Auto-saving..." indicator
-  //   }, 1000); // Adjust the debounce time as needed
-  // };
-
-  // Load saved form data from localStorage
   const loadFormFromDraft = () => {
     const savedForm = localStorage.getItem("formDraft");
     if (savedForm) {
       const parsedData = JSON.parse(savedForm);
       setTitle(parsedData.title);
       setSubtitle(parsedData.subtitle);
-      setQuestions(parsedData.questions);
+      setSections(parsedData.sections);
     }
   };
 
-  // Load form data when the component mounts (on page load)
   useEffect(() => {
     loadFormFromDraft();
   }, []);
 
-  // Add a new main question
-  const addQuestion = () => {
-    setQuestions([
-      ...questions,
-      {
-        question: `Question ${questions.length + 1}`,
-        type: "likert-scale", // default question type can be any, e.g., likert-scale
-        options: [],
-        likertQuestions: [],
-      },
+  const addSection = () => {
+    setSections([
+      ...sections,
+      { title: `Section ${sections.length + 1}`, questions: [] },
     ]);
   };
 
-  // Handle changing main question text
-  const handleMainQuestionChange = (index: number, value: string) => {
-    const newQuestions = [...questions];
-    newQuestions[index].question = value;
-    setQuestions(newQuestions);
-    handleTyping(); // Trigger typing handler when the user types
+  const handleSectionTitleChange = (index: number, value: string) => {
+    const newSections = [...sections];
+    newSections[index].title = value;
+    setSections(newSections);
   };
 
-  const handleQuestionTypeChange = (
-    index: number,
-    type:
-      | "likert-scale"
-      | "multiple-choice"
-      | "single-choice"
-      | "text"
-      | "record-audio"
-      | "record-video"
-      | "take-picture"
+  const addQuestionToSection = (sectionIndex: number) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].questions.push({
+      question: "",
+      type: "text",
+      options: [],
+      likertQuestions: [],
+    });
+    setSections(newSections);
+  };
+
+  const handleSectionQuestionChange = (
+    sectionIndex: number,
+    questionIndex: number,
+    value: string
   ) => {
-    const newQuestions = [...questions];
-    newQuestions[index].type = type;
+    const newSections = [...sections];
+    const question = newSections[sectionIndex].questions[questionIndex];
 
-    // Reset media flags
-    setAllowAudio(false);
-    setAllowVideo(false);
-    setAllowImage(false);
-
-    // Update based on selection
-    if (type === "record-audio") {
-      setAllowAudio(true);
-    } else if (type === "record-video") {
-      setAllowVideo(true);
-    } else if (type === "take-picture") {
-      setAllowImage(true);
+    question.question = value;
+    if (question.type === "text") {
+      question.options = [];
+      question.likertQuestions = [];
     }
 
-    // Ensure only relevant fields are retained
-    if (type === "likert-scale") {
-      newQuestions[index].options = [];
-      newQuestions[index].likertQuestions = [
-        { question: "", options: ["", "", "", "", ""] },
-      ];
-    } else if (type === "multiple-choice" || type === "single-choice") {
-      newQuestions[index].likertQuestions = [];
-      newQuestions[index].options = ["", ""];
-    } else {
-      newQuestions[index].likertQuestions = [];
-      newQuestions[index].options = [];
-    }
-
-    setQuestions(newQuestions);
+    setSections(newSections);
   };
 
-  // Add a new Likert scale question under a main question
-  const addLikertQuestion = (qIndex: number) => {
-    const newQuestions = [...questions];
-    newQuestions[qIndex].likertQuestions.push({
+  const handleSectionQuestionTypeChange = (
+    sectionIndex: number,
+    questionIndex: number,
+    type: string
+  ) => {
+    const newSections = [...sections];
+    const question = newSections[sectionIndex].questions[questionIndex];
+    question.type = type as Question["type"];
+
+    // Clear options and likertQuestions if the type is not likert-scale
+    if (type === "text") {
+      question.options = [];
+      question.likertQuestions = [];
+    } else if (type !== "likert-scale") {
+      question.likertQuestions = [];
+    }
+
+    setSections(newSections);
+  };
+
+  const addLikertQuestion = (sectionIndex: number, qIndex: number) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].questions[qIndex].likertQuestions.push({
       question: "",
       options: ["", "", "", "", ""],
     });
-    setQuestions(newQuestions);
+    setSections(newSections);
   };
 
-  // Handle changing Likert scale question text
   const handleLikertQuestionChange = (
+    sectionIndex: number,
     qIndex: number,
     lIndex: number,
     value: string
   ) => {
-    const newQuestions = [...questions];
-    newQuestions[qIndex].likertQuestions[lIndex].question = value;
-    setQuestions(newQuestions);
+    const newSections = [...sections];
+    newSections[sectionIndex].questions[qIndex].likertQuestions[
+      lIndex
+    ].question = value;
+    setSections(newSections);
   };
 
-  // Handle changing Likert scale options
   const handleOptionChange = (
+    sectionIndex: number,
     qIndex: number,
-    lIndex: number | null,
     oIndex: number,
-    value: string
+    value: string,
+    nextSection: number | null
   ) => {
-    const newQuestions = [...questions];
-    if (lIndex !== null) {
-      newQuestions[qIndex].likertQuestions[lIndex].options[oIndex] = value;
-    } else {
-      newQuestions[qIndex].options[oIndex] = value;
-    }
-    setQuestions(newQuestions);
+    const newSections = [...sections];
+    newSections[sectionIndex].questions[qIndex].options[oIndex] = {
+      value,
+      nextSection,
+    };
+    setSections(newSections);
   };
 
-  // Add another option for a Likert scale question
-  const addOption = (qIndex: number, lIndex: number | null) => {
-    const newQuestions = [...questions];
-    if (lIndex !== null) {
-      newQuestions[qIndex].likertQuestions[lIndex].options.push(""); // Add an empty option for Likert scale
-    } else {
-      newQuestions[qIndex].options.push(""); // Add an empty option for other types
-    }
-    setQuestions(newQuestions);
+  const addOption = (sectionIndex: number, qIndex: number) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].questions[qIndex].options.push({
+      value: "",
+      nextSection: null,
+    });
+    setSections(newSections);
   };
 
-  // Remove an option for multiple-choice or single-choice question
+  const removeQuestion = (sectionIndex: number, qIndex: number) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].questions.splice(qIndex, 1);
+    setSections(newSections);
+  };
+
   const removeOption = (
+    sectionIndex: number,
     qIndex: number,
     lIndex: number | null,
     oIndex: number
   ) => {
-    const newQuestions = [...questions];
+    const newSections = [...sections];
     if (lIndex !== null) {
-      newQuestions[qIndex].likertQuestions[lIndex].options.splice(oIndex, 1); // Remove option from Likert scale
+      newSections[sectionIndex].questions[qIndex].likertQuestions[
+        lIndex
+      ].options.splice(oIndex, 1);
     } else {
-      newQuestions[qIndex].options.splice(oIndex, 1); // Remove option from multiple-choice or single-choice
+      newSections[sectionIndex].questions[qIndex].options.splice(oIndex, 1);
     }
-    setQuestions(newQuestions);
+
+    setSections(newSections);
   };
 
-  // // Remove a question
-  // const removeQuestion = (qIndex: number) => {
-  //   const newQuestions = [...questions];
-  //   newQuestions.splice(qIndex, 1); // Remove the question at the specified index
-  //   setQuestions(newQuestions);
-  // };
-
-  const [allowAudio, setAllowAudio] = useState(false);
-  const [allowVideo, setAllowVideo] = useState(false);
-  const [allowImage, setAllowImage] = useState(false);
-
-  // POST request to submit the survey data
   const handleSubmitSurvey = async () => {
     const userRole = localStorage.getItem("userRole");
     if (userRole !== "admin") {
@@ -260,51 +221,64 @@ export default function Questions() {
       return;
     }
 
-    // Validation check ends
-    for (const question of questions) {
-      if (!question.question.trim()) {
-        toast.error("All questions must have a valid text.");
-        return;
-      }
+    for (const section of sections) {
+      for (const question of section.questions) {
+        if (!question.question.trim()) {
+          toast.error("All questions must have a valid text.");
+          return;
+        }
 
-      if (
-        (question.type === "multiple-choice" ||
-          question.type === "single-choice") &&
-        (question.options.length === 0 ||
-          question.options.some((option) => !option.trim()))
-      ) {
-        toast.error(
-          "Multiple-choice and single-choice questions must have at least one non-empty option."
-        );
-        return;
-      }
+        if (
+          (question.type === "multiple-choice" ||
+            question.type === "single-choice") &&
+          (question.options.length === 0 ||
+            question.options.some((option) => !option.value.trim()))
+        ) {
+          toast.error(
+            "Multiple-choice and single-choice questions must have at least one non-empty option."
+          );
+          return;
+        }
 
-      if (
-        question.type === "likert-scale" &&
-        question.likertQuestions.length === 0
-      ) {
-        toast.error(
-          "Likert scale questions must contain at least one sub-question."
-        );
-        return;
+        if (
+          question.type === "likert-scale" &&
+          question.likertQuestions.length === 0
+        ) {
+          toast.error(
+            "Likert scale questions must contain at least one sub-question."
+          );
+          return;
+        }
       }
     }
 
-    //validation check ends
+    const cleanedSections = sections.map((section) => {
+      const cleanedQuestions = section.questions.map((question) => {
+        if (question.type === "text") {
+          // Remove 'options' and 'likertQuestions' for text questions
+          const { options, likertQuestions, ...rest } = question;
+          return rest;
+        } else if (question.type === "likert-scale") {
+          // Ensure likert-scale questions keep their 'likertQuestions'
+          return question;
+        } else {
+          // Remove 'likertQuestions' for multiple-choice and single-choice questions
+          const { likertQuestions, ...rest } = question;
+          return rest;
+        }
+      });
+      return { ...section, questions: cleanedQuestions };
+    });
+
     const surveyData = {
       title,
       subtitle,
-      questions,
-      //   mediaInstruction,
-      //   mediaType,
-      allowAudio, // Now included at the survey level
-      allowVideo, // Now included at the survey level
-      allowImage, // Now included at the survey level
+      sections: cleanedSections,
+      // sections
     };
-
-    setIsSubmitting(true); // Set submitting state to true when submission starts
+    setIsSubmitting(true);
     try {
-      // const response = await fetch("https://geo-collect.onrender.com/api/v1/create", {
+      // validateForm();
       const response = await fetch(`${API_BASE_URL}/create`, {
         method: "POST",
         headers: {
@@ -317,36 +291,27 @@ export default function Questions() {
       if (!response.ok) {
         const errorData = await response.json();
         alert(`Error: ${errorData.message}`);
-        setIsSubmitting(false); // Reset submitting state in case of error
+        setIsSubmitting(false);
         return;
       }
 
       const data = await response.json();
-      console.log("Survey submitted successfully:", data);
-      toast("Survey submitted successfully!");
+      console.log("Survey created successfully:", data);
+      toast("Survey created successfully!");
 
-      // Clear the form after successful submission
       setTitle("");
       setSubtitle("");
-      setQuestions([
-        {
-          question: "Question 1",
-          type: "likert-scale",
-          options: [],
-          likertQuestions: [],
-        },
-      ]);
-      setIsSubmitting(false); // Reset submitting state after clearing form
+      setSections([]);
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error submitting survey:", error);
       alert("An error occurred while submitting the survey.");
-      setIsSubmitting(false); // Reset submitting state in case of error
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="relative p-6">
-      {/* Logo at the Top Right */}
       <div className="absolute top-4 right-6">
         <Image
           src="/digiplus.png"
@@ -356,7 +321,6 @@ export default function Questions() {
           priority
         />
       </div>
-
       <h1 className="text-2xl font-bold mb-4">Survey Questions</h1>
       <button
         className="bg-gray-800 text-white px-4 py-2 rounded mb-6"
@@ -364,24 +328,20 @@ export default function Questions() {
       >
         {isFormOpen ? "Close Form" : "Create New Survey"}
       </button>
-
       {isFormOpen && (
         <div className="bg-white shadow-md rounded-lg p-6 w-full md:w-2/3 lg:w-1/2 mx-auto">
           <h2 className="text-xl font-semibold mb-4">Create a New Survey</h2>
-
           <label className="block mb-2 font-medium">Survey Title:</label>
           <input
             type="text"
             className="w-full p-2 border rounded-md mb-4"
             placeholder="Enter survey title"
             value={title}
-            // onChange={(e) => setTitle(e.target.value)}
             onChange={(e) => {
               setTitle(e.target.value);
               handleTyping();
             }}
           />
-
           <label className="block mb-2 font-medium">Survey Sub-title:</label>
           <input
             type="text"
@@ -392,178 +352,230 @@ export default function Questions() {
               setSubtitle(e.target.value);
               handleTyping();
             }}
-            // onChange={(e) => setSubtitle(e.target.value)}
           />
-          {/* <input
-            type="text"
-            value={subtitle}
-            onChange={(e) => {
-              setSubtitle(e.target.value);
-              handleTyping();
-            }}
-            placeholder="Survey Subtitle"
-          /> */}
-
-          {questions.map((q, qIndex) => (
-            <div key={qIndex} className="border-b pb-4 mb-4">
-              {/* Main question */}
-              <label className="block mb-2 font-medium">{q.question}</label>
+          {sections.map((section, sectionIndex) => (
+            <div key={sectionIndex} className="mt-4 p-4 border rounded-md">
+              <label className="block mb-2 font-medium">Section Title:</label>
               <input
                 type="text"
                 className="w-full p-2 border rounded-md mb-4"
-                value={q.question}
+                value={section.title}
                 onChange={(e) =>
-                  handleMainQuestionChange(qIndex, e.target.value)
+                  handleSectionTitleChange(sectionIndex, e.target.value)
                 }
               />
-
-              {/* Question Type Dropdown */}
-              <label className="block mb-2 font-medium">
-                Select Question Type:
-              </label>
-              <select
-                className="w-full p-2 border rounded-md mb-4"
-                value={q.type}
-                onChange={(e) =>
-                  handleQuestionTypeChange(
-                    qIndex,
-                    e.target.value as
-                      | "likert-scale"
-                      | "multiple-choice"
-                      | "single-choice"
-                      | "text"
-                  )
-                }
-              >
-                <option value="likert-scale">Likert Scale</option>
-                <option value="multiple-choice">Multiple Choice</option>
-                <option value="single-choice">Single Choice</option>
-                <option value="text">Text</option>
-                <option value="record-audio">Record Audio</option>
-                <option value="record-video">Record Video</option>
-                <option value="take-picture">Take Picture</option>
-              </select>
-
-              {/* Show Likert scale questions if selected */}
-              {q.type === "likert-scale" && (
-                <div>
-                  {q.likertQuestions.map((likertQ, lIndex) => (
-                    <div key={lIndex} className="mb-4">
-                      <label className="block mb-2 font-medium">
-                        Likert Question {lIndex + 1}:
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border rounded-md mb-4"
-                        value={likertQ.question}
-                        onChange={(e) =>
-                          handleLikertQuestionChange(
-                            qIndex,
-                            lIndex,
-                            e.target.value
-                          )
-                        }
-                      />
-
-                      <label className="block mb-2 font-medium">
-                        Likert Scale Options:
-                      </label>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {likertQ.options.map((option, oIndex) => (
+              {section.questions.map((q, qIndex) => (
+                <div key={qIndex} className="mb-4">
+                  <label className="block mb-2 font-medium">
+                    Question {qIndex + 1}:
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-md mb-4"
+                    value={q.question}
+                    onChange={(e) =>
+                      handleSectionQuestionChange(
+                        sectionIndex,
+                        qIndex,
+                        e.target.value
+                      )
+                    }
+                  />
+                  <label className="block mb-2 font-medium">
+                    Select Question Type:
+                  </label>
+                  <select
+                    className="w-full p-2 border rounded-md mb-4"
+                    value={q.type}
+                    onChange={(e) =>
+                      handleSectionQuestionTypeChange(
+                        sectionIndex,
+                        qIndex,
+                        e.target.value as
+                          | "likert-scale"
+                          | "multiple-choice"
+                          | "single-choice"
+                          | "text"
+                          | "record-audio"
+                          | "record-video"
+                          | "take-picture"
+                      )
+                    }
+                  >
+                    <option value="likert-scale">Likert Scale</option>
+                    <option value="multiple-choice">Multiple Choice</option>
+                    <option value="single-choice">Single Choice</option>
+                    <option value="text">Text</option>
+                    <option value="record-audio">Record Audio</option>
+                    <option value="record-video">Record Video</option>
+                    <option value="take-picture">Take Picture</option>
+                  </select>
+                  {q.type === "likert-scale" && (
+                    <div>
+                      {q.likertQuestions.map((likertQ, lIndex) => (
+                        <div key={lIndex} className="mb-4">
+                          <label className="block mb-2 font-medium">
+                            Likert Question {lIndex + 1}:
+                          </label>
                           <input
-                            key={oIndex}
                             type="text"
-                            className="w-1/5 p-2 border rounded-md"
-                            value={option}
+                            className="w-full p-2 border rounded-md mb-4"
+                            value={likertQ.question}
                             onChange={(e) =>
-                              handleOptionChange(
+                              handleLikertQuestionChange(
+                                sectionIndex,
                                 qIndex,
                                 lIndex,
-                                oIndex,
                                 e.target.value
                               )
                             }
                           />
-                        ))}
-                      </div>
+                          <label className="block mb-2 font-medium">
+                            Likert Scale Options:
+                          </label>
+
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {likertQ.options.map((option, oIndex) => (
+                              <input
+                                key={oIndex}
+                                type="text"
+                                className="w-1/5 p-2 border rounded-md"
+                                value={option}
+                                onChange={(e) =>
+                                  handleOptionChange(
+                                    sectionIndex,
+                                    qIndex,
+                                    oIndex,
+                                    e.target.value,
+                                    null
+                                  )
+                                }
+                              />
+                            ))}
+                          </div>
+
+                          <button
+                            className="bg-green-500 text-white px-3 py-1 rounded mt-2"
+                            onClick={() => addOption(sectionIndex, qIndex)} // Removed lIndex
+                          >
+                            + Add Option
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full"
+                        onClick={() => addLikertQuestion(sectionIndex, qIndex)}
+                      >
+                        + Add Likert Scale Question
+                      </button>
+                    </div>
+                  )}
+                  {(q.type === "multiple-choice" ||
+                    q.type === "single-choice") && (
+                    <div>
+                      <label className="block mb-2 font-medium">
+                        {q.type === "multiple-choice"
+                          ? "Multiple Choice"
+                          : "Single Choice"}{" "}
+                        Options:
+                      </label>
+                      {q.options.map((option, oIndex) => (
+                        <div key={oIndex}>
+                          <input
+                            type="text"
+                            className="w-full p-2 border rounded-md mb-2"
+                            value={option.value}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                sectionIndex,
+                                qIndex,
+                                oIndex,
+                                e.target.value,
+                                option.nextSection
+                              )
+                            }
+                          />
+                          <label className="block mb-2 font-medium">
+                            Next Section:
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 border rounded-md mb-2"
+                            value={option.nextSection || ""}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                sectionIndex,
+                                qIndex,
+                                oIndex,
+                                option.value,
+                                parseInt(e.target.value)
+                              )
+                            }
+                          />
+                          <button
+                            className="bg-gray-500 text-white px-3 py-1 rounded mt-2 mx-3"
+                            onClick={() =>
+                              removeOption(
+                                sectionIndex,
+
+                                qIndex,
+                                null,
+                                oIndex
+                              )
+                            }
+                          >
+                            Remove Option
+                          </button>
+                        </div>
+                      ))}
+
                       <button
                         className="bg-green-500 text-white px-3 py-1 rounded mt-2"
-                        onClick={() => addOption(qIndex, lIndex)}
+                        onClick={() => addOption(sectionIndex, qIndex)} // Removed lIndex
                       >
                         + Add Option
                       </button>
                     </div>
-                  ))}
+                  )}
+
+                  {q.type === "text" && (
+                    <div>
+                      <label className="block mb-2 font-medium">
+                        Text Response:
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border rounded-md"
+                        placeholder="Enter your answer"
+                        disabled
+                      />
+                    </div>
+                  )}
+
                   <button
-                    className="bg-gray-700 text-white px-4 py-2 rounded mt-4 w-full"
-                    onClick={() => addLikertQuestion(qIndex)}
+                    className="bg-red-500 text-white px-3 py-1 rounded mt-4 w-full"
+                    onClick={() => removeQuestion(sectionIndex, qIndex)}
                   >
-                    + Add Likert Scale Question
+                    Delete Question
                   </button>
                 </div>
-              )}
+              ))}
 
-              {/* Show Multiple-Choice or Single-Choice */}
-              {(q.type === "multiple-choice" || q.type === "single-choice") && (
-                <div>
-                  <label className="block mb-2 font-medium">
-                    {q.type === "multiple-choice"
-                      ? "Multiple Choice"
-                      : "Single Choice"}{" "}
-                    Options:
-                  </label>
-                  {q.options.map((option, oIndex) => (
-                    <input
-                      key={oIndex}
-                      type="text"
-                      className="w-full p-2 border rounded-md mb-2"
-                      value={option}
-                      onChange={(e) =>
-                        handleOptionChange(qIndex, null, oIndex, e.target.value)
-                      }
-                    />
-                  ))}
-                  {/* <button onClick={() => removeOption(qIndex, null, oIndex)}>Remove Option</button> */}
-                  <button
-                    onClick={() => addOption(qIndex, null)}
-                    className="bg-gray-500 text-white px-3 py-1 rounded mt-2 "
-                  >
-                    Add Option
-                  </button>{" "}
-                  <button
-                    onClick={() => removeOption(qIndex, null, qIndex)}
-                    className="bg-gray-500 text-white px-3 py-1 rounded mt-2 mx-3"
-                  >
-                    Remove Option
-                  </button>
-                </div>
-              )}
-
-              {/* Show Text input for Text Question */}
-              {q.type === "text" && (
-                <div>
-                  <label className="block mb-2 font-medium">
-                    Text Response:
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-md"
-                    placeholder="Enter your answer"
-                    disabled
-                  />
-                </div>
-              )}
+              <button
+                className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
+                onClick={() => addQuestionToSection(sectionIndex)}
+              >
+                + Add Question
+              </button>
             </div>
           ))}
 
           <button
             className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
-            onClick={addQuestion}
+            onClick={addSection}
           >
-            + Add Another Question
+            + Add Section
           </button>
-
-          {/* Submit Button */}
 
           <button
             onClick={saveFormAsDraft}
@@ -571,10 +583,6 @@ export default function Questions() {
           >
             Save as Draft
           </button>
-          {/* <button onClick={handleSubmitSurvey} disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Survey"}
-          </button> */}
-
           <button
             className="bg-gray-800 text-white px-4 py-2 rounded mt-4 w-full"
             onClick={handleSubmitSurvey}
