@@ -89,7 +89,7 @@ export const createUsers = async (
       selectedState,
       adminId,
     });
-    toast.success("User created successful");
+    // toast.success("User created successful");
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);

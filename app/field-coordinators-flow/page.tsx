@@ -110,22 +110,22 @@ export default function FieldCoordinatorsDashboard() {
     fetchFieldCoordData();
   }, []);
 
-  useEffect(() => {
-    const fetchSurveyData = async () => {
-      try {
-        const data = await getSurveyResponsesByFieldCoordinator();
-        setSurveyData(data);
-        setError(""); // Clear errors only if successful
-      } catch (error) {
-        setError("Failed to fetch survey data.");
-        console.error("Error fetching survey responses:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchSurveyData = async () => {
+  //     try {
+  //       const data = await getSurveyResponsesByFieldCoordinator();
+  //       setSurveyData(data);
+  //       setError(""); // Clear errors only if successful
+  //     } catch (error) {
+  //       setError("Failed to fetch survey data.");
+  //       console.error("Error fetching survey responses:", error);
+  //     }
+  //   };
 
-    if (isDataVisible) {
-      fetchSurveyData();
-    }
-  }, [isDataVisible]);
+  //   if (isDataVisible) {
+  //     fetchSurveyData();
+  //   }
+  // }, [isDataVisible]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

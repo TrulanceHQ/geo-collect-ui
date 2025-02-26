@@ -1,13 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
-html {
-    overflow: hidden; /* Prevent the entire body from scrolling */
-  }
-  
-  body {
-    overflow: auto;  /* Allow inner elements like the table to scroll */
-  }
-  

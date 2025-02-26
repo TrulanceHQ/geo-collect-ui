@@ -142,7 +142,6 @@ export default function DashboardPage() {
     getUserCounts();
   }, []);
 
-
   const handleCreateUser = async () => {
     setIsSubmitting(true);
     const creatorRole = "admin";
@@ -161,7 +160,11 @@ export default function DashboardPage() {
         if (error.response?.status === 403) {
           setError("You do not have permission to create users.");
           toast.error("You do not have permission to create users.");
-        } else if (error.response?.status === 409 && error.response?.data?.message === "Email address has been used by another customer") {
+        } else if (
+          error.response?.status === 409 &&
+          error.response?.data?.message ===
+            "Email address has been used by another customer"
+        ) {
           setError("Email address has been used by another customer.");
           toast.error("Email address has been used by another customer.");
         } else {
