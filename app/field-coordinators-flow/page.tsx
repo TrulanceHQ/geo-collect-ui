@@ -14,6 +14,7 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { FaEdit } from "react-icons/fa";
+import ResetPasswordModal from "@/components/ResetPasswordModal";
 
 export default function FieldCoordinatorsDashboard() {
   const [fieldCoordData, setFieldCoordData] = useState({
@@ -113,6 +114,8 @@ export default function FieldCoordinatorsDashboard() {
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [userId, setUserId] = useState("");
 
   {
     error && <p className="text-red-500">{error}</p>;
@@ -140,7 +143,7 @@ export default function FieldCoordinatorsDashboard() {
     try {
       const data = await createEnumerators(emailAddress, role, creatorRole);
       console.log("User created successfully:", data); // Log the success
-      setSuccess("User created successfully!");
+      // setSuccess("User created successfully!");
       setIsFormOpen(false); // Close the form/modal after successful creation
       setError(""); // Clear previous errors
     } catch (error: unknown) {
@@ -187,6 +190,22 @@ export default function FieldCoordinatorsDashboard() {
     },
   ];
 
+  const handleResetPassword = () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Unauthorized: No access token found");
+      return;
+    }
+
+    const decodedToken = jwtDecode<{ sub: string }>(token);
+    setUserId(decodedToken.sub);
+    setIsResetPasswordOpen(true);
+  };
+
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <>
       <ProtectedPage allowedRoles={["fieldCoordinator"]} redirectPath="/">
@@ -195,6 +214,12 @@ export default function FieldCoordinatorsDashboard() {
           onClick={logout}
         >
           Log Out
+        </button>
+        <button
+          className="bg-gray-400 text-white px-4 py-1 rounded w-full sm:w-auto"
+          onClick={handleResetPassword}
+        >
+          Update Password
         </button>
         <div className="relative p-6">
           <h1 style={{ fontSize: "1.4rem" }}>
@@ -405,6 +430,13 @@ export default function FieldCoordinatorsDashboard() {
             </table>
           </div>
         )}
+
+        {/* Reset Password Modal */}
+        <ResetPasswordModal
+          isOpen={isResetPasswordOpen}
+          onClose={() => setIsResetPasswordOpen(false)}
+          userId={userId}
+        />
 
         {/* </div> */}
       </ProtectedPage>

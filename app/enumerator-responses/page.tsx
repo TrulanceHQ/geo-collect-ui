@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useResponseContext } from '@/services/ResponseContext';
+import { useState } from "react";
+import { useResponseContext } from "@/services/ResponseContext";
+import Image from "next/image";
 
 // interface Response {
 //   questionId: string;
@@ -11,33 +12,34 @@ import { useResponseContext } from '@/services/ResponseContext';
 // }
 
 interface SurveyResponse {
-    surveyId?: {
-      _id: string;
-      title: string;
-    } | null;
-    enumeratorId: string;
-    responses: {
-      questionId: string;
-      answer: string | string[];
-    }[];
-    location: string;
-    mediaUrl: string;
-    submittedAt: string;
+  surveyId?: {
+    _id: string;
+    title: string;
+  } | null;
+  enumeratorId: string;
+  responses: {
+    questionId: string;
+    answer: string | string[];
+  }[];
+  location: string;
+  mediaUrl: string;
+  submittedAt: string;
 }
 
-const isMedia = (answer: string): 'image' | 'video' | 'audio' | 'text' => {
+const isMedia = (answer: string): "image" | "video" | "audio" | "text" => {
   return /\.(jpeg|jpg|png|gif|bmp|svg|webp)$/i.test(answer)
-    ? 'image'
+    ? "image"
     : /\.(mp4|webm|ogg)$/i.test(answer)
-    ? 'video'
+    ? "video"
     : /\.(mp3|wav|ogg)$/i.test(answer)
-    ? 'audio'
-    : 'text';
+    ? "audio"
+    : "text";
 };
 
 export default function ResponsesPage() {
-   const { responses } = useResponseContext();
-  const [selectedResponse, setSelectedResponse] = useState<SurveyResponse | null>(null);
+  const { responses } = useResponseContext();
+  const [selectedResponse, setSelectedResponse] =
+    useState<SurveyResponse | null>(null);
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -62,14 +64,16 @@ export default function ResponsesPage() {
               <tr
                 key={survey._id}
                 className="border-b cursor-pointer hover:bg-gray-100"
-                onClick={() => setSelectedResponse({
-                  ...survey,
-                  location: survey.location || '',
-                  mediaUrl: survey.mediaUrl || ''
-                })}
+                onClick={() =>
+                  setSelectedResponse({
+                    ...survey,
+                    location: survey.location || "",
+                    mediaUrl: survey.mediaUrl || "",
+                  })
+                }
               >
                 <td className="border p-2">
-                  {survey.surveyId ? survey.surveyId.title : 'No Survey'}
+                  {survey.surveyId ? survey.surveyId.title : "No Survey"}
                 </td>
                 <td className="border p-2">{survey.enumeratorId}</td>
                 <td className="border p-2">
@@ -92,13 +96,23 @@ export default function ResponsesPage() {
               ✖
             </button>
             <h2 className="text-xl font-bold mb-4">Response Details</h2>
-            <p><strong>Survey:</strong> {selectedResponse.surveyId?.title || 'No Survey'}</p>
-            <p><strong>Enumerator:</strong> {selectedResponse.enumeratorId}</p>
-            <p><strong>Submitted At:</strong> {new Date(selectedResponse.submittedAt).toLocaleString()}</p>
+            <p>
+              <strong>Survey:</strong>{" "}
+              {selectedResponse.surveyId?.title || "No Survey"}
+            </p>
+            <p>
+              <strong>Enumerator:</strong> {selectedResponse.enumeratorId}
+            </p>
+            <p>
+              <strong>Submitted At:</strong>{" "}
+              {new Date(selectedResponse.submittedAt).toLocaleString()}
+            </p>
 
             <div className="mt-4">
               {selectedResponse.responses.map((res, index) => {
-                const answers = Array.isArray(res.answer) ? res.answer : [res.answer];
+                const answers = Array.isArray(res.answer)
+                  ? res.answer
+                  : [res.answer];
                 return (
                   <div key={index} className="mb-4">
                     <p className="font-bold">Question {index + 1}</p>
@@ -106,22 +120,27 @@ export default function ResponsesPage() {
                       const mediaType = isMedia(ans);
                       return (
                         <div key={idx} className="mb-2">
-                          {mediaType === 'image' && (
-                            <img src={ans} alt="response" className="w-32 h-32 object-cover" />
+                          {mediaType === "image" && (
+                            <Image
+                              src={ans}
+                              alt="response"
+                              className="w-32 h-32 object-cover"
+                            />
+                            // <img src={ans} alt="response" className="w-32 h-32 object-cover" />
                           )}
-                          {mediaType === 'video' && (
+                          {mediaType === "video" && (
                             <video controls className="w-40">
                               <source src={ans} type="video/mp4" />
                               Your browser does not support the video tag.
                             </video>
                           )}
-                          {mediaType === 'audio' && (
+                          {mediaType === "audio" && (
                             <audio controls>
                               <source src={ans} type="audio/mp3" />
                               Your browser does not support the audio tag.
                             </audio>
                           )}
-                          {mediaType === 'text' && <span>{ans}</span>}
+                          {mediaType === "text" && <span>{ans}</span>}
                         </div>
                       );
                     })}

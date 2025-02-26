@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -167,9 +166,9 @@ export default function EnumeratorDashboard() {
     const fetchResponses = async () => {
       try {
         const data: Response[] = await fetchEnumeratorResponses();
-        const surveyResponses = data.map(response => ({
+        const surveyResponses = data.map((response) => ({
           ...response,
-          surveyId: { _id: response.surveyId, title: "" } // Adjust the title as needed
+          surveyId: { _id: response.surveyId, title: "" }, // Adjust the title as needed
         }));
         setResponses(surveyResponses);
         console.log("Responses:", data);
@@ -213,7 +212,7 @@ export default function EnumeratorDashboard() {
           Log Out
         </button>
         <button
-          className="bg-purple-400 text-white px-4 py-1 rounded w-full sm:w-auto"
+          className="bg-gray-400 text-white px-4 py-1 rounded w-full sm:w-auto"
           onClick={handleResetPassword}
         >
           Update Password
@@ -357,8 +356,8 @@ export default function EnumeratorDashboard() {
           />
         )}
 
-          {/* Reset Password Modal */}
-          <ResetPasswordModal
+        {/* Reset Password Modal */}
+        <ResetPasswordModal
           isOpen={isResetPasswordOpen}
           onClose={() => setIsResetPasswordOpen(false)}
           userId={userId}

@@ -9,7 +9,11 @@ interface ResetPasswordModalProps {
   userId: string;
 }
 
-const ResetPasswordModal = ({ isOpen, onClose, userId }: ResetPasswordModalProps) => {
+const ResetPasswordModal = ({
+  isOpen,
+  onClose,
+  userId,
+}: ResetPasswordModalProps) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,24 +24,26 @@ const ResetPasswordModal = ({ isOpen, onClose, userId }: ResetPasswordModalProps
       toast.error("New password and confirm password do not match");
       return;
     }
-    setLoading(true);     
-    
+    setLoading(true);
+
     try {
-        const data = await updateUserPassword(userId, oldPassword, newPassword);
-        toast.success(data.message);
-        console.log("Responses:", data);
-        onClose();
+      const data = await updateUserPassword(userId, oldPassword, newPassword);
+      toast.success(data.message);
+      console.log("Responses:", data);
+      onClose();
     } catch (error) {
-        console.error("Failed to update password from modal", error);
-        if (axios.isAxiosError(error)) {
-            toast.error(error.response?.data?.message || "Failed to update password");
-        } else if (error instanceof Error) {
-            toast.error(error.message || "Failed to update password");
-        } else {
-            toast.error("Failed to update password");
-        }
+      console.error("Failed to update password from modal", error);
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message || "Failed to update password"
+        );
+      } else if (error instanceof Error) {
+        toast.error(error.message || "Failed to update password");
+      } else {
+        toast.error("Failed to update password");
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -46,7 +52,9 @@ const ResetPasswordModal = ({ isOpen, onClose, userId }: ResetPasswordModalProps
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4 text-center">Update Password</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center">
+          Update Password
+        </h2>
         <div className="mb-4">
           <label className="block mb-2 font-medium">Old Password:</label>
           <input
@@ -66,7 +74,9 @@ const ResetPasswordModal = ({ isOpen, onClose, userId }: ResetPasswordModalProps
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-2 font-medium">Confirm New Password:</label>
+          <label className="block mb-2 font-medium">
+            Confirm New Password:
+          </label>
           <input
             type="password"
             className="w-full p-2 border rounded-md"
