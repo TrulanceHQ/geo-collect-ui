@@ -70,6 +70,8 @@ export default function SurveyForm({
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
   const [location, setLocation] = useState(initialLocation);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [navigatedByNextSection, setNavigatedByNextSection] = useState(false);
+  const [isLastQuestion, setIsLastQuestion] = useState(false);
 
   // Fetch survey data when the modal opens
   useEffect(() => {
@@ -104,17 +106,37 @@ export default function SurveyForm({
   };
 
   const handleNext = () => {
-    const nextSectionIndex = currentQuestion.options.find(
-      (option) => option.value === responses[currentQuestion._id]
-    )?.nextSection;
-    if (nextSectionIndex !== undefined && nextSectionIndex !== null) {
-      setCurrentSectionIndex(nextSectionIndex);
-      setCurrentQuestionIndex(0);
-    } else if (currentQuestionIndex < currentSection.questions.length - 1) {
+    if (currentQuestion && currentQuestion.options && currentQuestion.options.length > 0) {
+      const selectedOption = currentQuestion.options.find(
+        (option) => option.value === responses[currentQuestion._id]
+      );
+      if (selectedOption && selectedOption.nextSection !== null) {
+        // Convert 1-based nextSection to 0-based index
+        const nextSectionIndex = selectedOption.nextSection - 1;
+        if (nextSectionIndex >= 0 && nextSectionIndex < sections.length) {
+          setCurrentSectionIndex(nextSectionIndex);
+          setCurrentQuestionIndex(0);
+          setNavigatedByNextSection(true);
+          setIsLastQuestion(false);
+          return;
+        }
+      }
+    }
+
+    if (currentQuestionIndex < currentSection.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else if (navigatedByNextSection) {
+      handleSubmit();
     } else if (currentSectionIndex < sections.length - 1) {
       setCurrentSectionIndex(currentSectionIndex + 1);
       setCurrentQuestionIndex(0);
+    }
+
+    // Check if this is the last question in the section
+    if (currentQuestionIndex === currentSection.questions.length - 1) {
+      setIsLastQuestion(true);
+    } else {
+      setIsLastQuestion(false);
     }
   };
 
@@ -370,22 +392,12 @@ export default function SurveyForm({
                 Previous
               </button>
 
-              {currentSectionIndex === sections.length - 1 &&
-              currentQuestionIndex === currentSection.questions.length - 1 ? (
-                <button
-                  onClick={handleSubmit}
-                  className="px-6 py-2 bg-green-500 text-white rounded"
-                >
-                  Submit
-                </button>
-              ) : (
-                <button
-                  onClick={handleNext}
-                  className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              )}
+              <button
+                onClick={handleNext}
+                className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+              >
+                {isLastQuestion ? "Submit" : "Next"}
+              </button>
             </div>
 
             {/* Media Upload Modal */}
