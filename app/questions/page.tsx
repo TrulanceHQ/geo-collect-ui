@@ -40,6 +40,7 @@ export default function Questions() {
   const [sections, setSections] = useState<
     { title: string; questions: Question[] }[]
   >([]);
+  const [showDeleteSection, setShowDeleteSection] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // const [isAutoSaving, setIsAutoSaving] = useState(false);
 
@@ -78,11 +79,29 @@ export default function Questions() {
     loadFormFromDraft();
   }, []);
 
+  // const addSection = () => {
+  //   setSections([
+  //     ...sections,
+  //     { title: `Section ${sections.length + 1}`, questions: [] },
+  //   ]);
+  // };
+
   const addSection = () => {
     setSections([
       ...sections,
       { title: `Section ${sections.length + 1}`, questions: [] },
     ]);
+    setShowDeleteSection(true); // Show the delete section button when a section is added
+  };
+
+  const removeSection = (sectionIndex: number) => {
+    const updatedSections = sections.filter(
+      (_, index) => index !== sectionIndex
+    );
+    setSections(updatedSections);
+    if (updatedSections.length === 0) {
+      setShowDeleteSection(false); // Hide the delete section button if no sections are left
+    }
   };
 
   const handleSectionTitleChange = (index: number, value: string) => {
@@ -116,6 +135,21 @@ export default function Questions() {
       question.likertQuestions = [];
     }
 
+    setSections(newSections);
+  };
+
+  //likert option
+  const handleLikertOptionChange = (
+    sectionIndex: number,
+    qIndex: number,
+    lIndex: number,
+    oIndex: number,
+    value: string
+  ) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].questions[qIndex].likertQuestions[lIndex].options[
+      oIndex
+    ] = value;
     setSections(newSections);
   };
 
@@ -442,14 +476,22 @@ export default function Questions() {
                                 type="text"
                                 className="w-1/5 p-2 border rounded-md"
                                 value={option}
-                                onChange={(e) =>
-                                  handleOptionChange(
-                                    sectionIndex,
-                                    qIndex,
-                                    oIndex,
-                                    e.target.value,
-                                    null
-                                  )
+                                onChange={
+                                  (e) =>
+                                    handleLikertOptionChange(
+                                      sectionIndex,
+                                      qIndex,
+                                      lIndex,
+                                      oIndex,
+                                      e.target.value
+                                    )
+                                  // handleOptionChange(
+                                  //   sectionIndex,
+                                  //   qIndex,
+                                  //   oIndex,
+                                  //   e.target.value,
+                                  //   null
+                                  // )
                                 }
                               />
                             ))}
@@ -568,6 +610,14 @@ export default function Questions() {
               >
                 + Add Question
               </button>
+              {showDeleteSection && (
+                <button
+                  className="bg-red-500 text-white px-3 py-1 rounded mt-4 w-full"
+                  onClick={() => removeSection(sectionIndex)}
+                >
+                  Delete Section
+                </button>
+              )}
             </div>
           ))}
 

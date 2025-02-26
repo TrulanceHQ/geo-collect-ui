@@ -112,7 +112,7 @@ export const createEnumerators = async (
       throw new Error("No token found");
     }
     const decodedToken = jwtDecode(token);
-    // const fieldCoordinatorId = decodedToken.sub;
+    const fieldCoordinatorId = decodedToken.sub;
 
     // Dynamically retrieve the selectedState for fieldCoordinator
     const getUserState = () => {
@@ -129,7 +129,7 @@ export const createEnumerators = async (
       role,
       creatorRole,
       selectedState,
-      // fieldCoordinatorId,
+      fieldCoordinatorId,
       // enumeratorId,
     });
 
@@ -140,7 +140,7 @@ export const createEnumerators = async (
         role,
         creatorRole,
         selectedState,
-        // fieldCoordinatorId,
+        fieldCoordinatorId,
       },
       {
         headers: {
@@ -153,7 +153,7 @@ export const createEnumerators = async (
       role,
       creatorRole,
       selectedState,
-      // fieldCoordinatorId,
+      fieldCoordinatorId,
     });
     toast.success("User created successful");
     return response.data;
@@ -515,29 +515,6 @@ export const updateUserPassword = async (
 //   }
 // };
 // Function to fetch survey responses
-export const getSurveyResponsesByFieldCoordinator = async () => {
-  try {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      throw new Error("No token found");
-    }
-    const decodedToken = jwtDecode(token);
-    const fieldCoordinatorId = decodedToken.sub;
-
-    const response = await axios.get(
-      `${API_BASE_URL}/enumerator/responses/${fieldCoordinatorId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
 // New function to fetch total responses count
 export const getTotalResponsesCountByFieldCoordinator = async () => {
@@ -564,3 +541,63 @@ export const getTotalResponsesCountByFieldCoordinator = async () => {
     throw error;
   }
 };
+
+//fetch all data for admin
+
+export const fetchAllSurveyResponsesByAdmin = async () => {
+  try {
+    const token = localStorage.getItem("accessToken"); // Retrieve token from storage
+
+    if (!token) {
+      console.error("No authentication token found");
+      throw new Error("No authentication token found");
+    }
+
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/all-responses-by-admin`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include token in request
+        },
+      }
+    );
+
+    // Ensure response format is correct
+    if (!Array.isArray(response.data)) {
+      console.error("Unexpected response format:", response.data);
+      return [];
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching survey responses:", error);
+    return [];
+  }
+};
+
+//fetch data responses for field coord by enumerator
+
+export const getSurveyResponsesByFieldCoordinator = async (
+  fieldCoordinatorId: string
+): Promise<any[]> => {
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/by-field-coordinator/${fieldCoordinatorId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to fetch survey responses");
+  }
+};
+
+//fetch survey count for field coord

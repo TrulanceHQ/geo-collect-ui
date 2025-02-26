@@ -39,7 +39,7 @@ export default function ListOfFieldCoordinators() {
             <th className="p-3 text-left text-gray-600">Name</th>
             <th className="p-3 text-left text-gray-600">Email</th>
             <th className="p-3 text-left text-gray-600">Phone</th>
-            <th className="p-3 text-center text-gray-600">Actions</th>
+            {/* <th className="p-3 text-center text-gray-600">Actions</th> */}
           </tr>
         </thead>
         <tbody>

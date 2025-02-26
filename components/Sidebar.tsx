@@ -123,6 +123,13 @@ const Sidebar = () => {
           >
             Survey Questions
           </Link>
+          <Link
+            href="/all-responses"
+            className="block p-3 hover:bg-gray-700"
+            onClick={() => setIsOpen(false)} // Close sidebar when link is clicked
+          >
+            All Responses
+          </Link>
 
           <button
             className="bg-red-500 text-white px-4 py-1 rounded "
