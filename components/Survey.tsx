@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchQuestionnaires, submitQuestionnaire } from "@/services/apiService";
+import {
+  fetchQuestionnaires,
+  submitQuestionnaire,
+} from "@/services/apiService";
 import { requestLocationPermission } from "@/services/util-services";
 import SubmissionSuccessModal from "@/components/SubmissionSuccessModal";
 import LocationApprovalModal from "@/components/LocationApprovalModal";
@@ -11,7 +14,11 @@ import { toast } from "react-toastify";
 type SurveyFormProps = {
   isOpen: boolean;
   onClose: () => void;
-  location: { latitude: number | null; longitude: number | null; address: string };
+  location: {
+    latitude: number | null;
+    longitude: number | null;
+    address: string;
+  };
   initialLocation: {
     latitude: number | null;
     longitude: number | null;
@@ -44,15 +51,22 @@ interface SurveyData {
   sections: Section[];
 }
 
-export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyFormProps) {
+export default function SurveyForm({
+  isOpen,
+  onClose,
+  initialLocation,
+}: SurveyFormProps) {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
-  const [responses, setResponses] = useState<{ [key: string]: string | string[] | undefined }>({});
+  const [responses, setResponses] = useState<{
+    [key: string]: string | string[] | undefined;
+  }>({});
   const [loading, setLoading] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showLocationApprovalModal, setShowLocationApprovalModal] = useState(false);
+  const [showLocationApprovalModal, setShowLocationApprovalModal] =
+    useState(false);
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
   const [location, setLocation] = useState(initialLocation);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
@@ -78,11 +92,21 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
   }, [isOpen, surveyId]);
 
   const sections = surveyData?.sections || [];
-  const currentSection = sections[currentSectionIndex] || { title: "", questions: [] };
-  const currentQuestion = currentSection.questions[currentQuestionIndex] || { question: "", type: "text", options: [], likertQuestions: [] };
+  const currentSection = sections[currentSectionIndex] || {
+    title: "",
+    questions: [],
+  };
+  const currentQuestion = currentSection.questions[currentQuestionIndex] || {
+    question: "",
+    type: "text",
+    options: [],
+    likertQuestions: [],
+  };
 
   const handleNext = () => {
-    const nextSectionIndex = currentQuestion.options.find(option => option.value === responses[currentQuestion._id])?.nextSection;
+    const nextSectionIndex = currentQuestion.options.find(
+      (option) => option.value === responses[currentQuestion._id]
+    )?.nextSection;
     if (nextSectionIndex !== undefined && nextSectionIndex !== null) {
       setCurrentSectionIndex(nextSectionIndex);
       setCurrentQuestionIndex(0);
@@ -99,11 +123,16 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else if (currentSectionIndex > 0) {
       setCurrentSectionIndex(currentSectionIndex - 1);
-      setCurrentQuestionIndex(sections[currentSectionIndex - 1].questions.length - 1);
+      setCurrentQuestionIndex(
+        sections[currentSectionIndex - 1].questions.length - 1
+      );
     }
   };
 
-  const handleResponseChange = (questionId: string, value: string | string[] | undefined) => {
+  const handleResponseChange = (
+    questionId: string,
+    value: string | string[] | undefined
+  ) => {
     setResponses((prev) => ({
       ...prev,
       [questionId]: value,
@@ -119,10 +148,12 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
 
     try {
       setLoading(true);
-      const formattedResponses = Object.entries(responses).map(([questionId, answer]) => ({
-        questionId,
-        answer,
-      }));
+      const formattedResponses = Object.entries(responses).map(
+        ([questionId, answer]) => ({
+          questionId,
+          answer,
+        })
+      );
       const payload = {
         responses: formattedResponses,
         surveyId,
@@ -168,7 +199,10 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-2xl p-10 rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-2 right-2 text-5xl text-gray-500 hover:text-gray-700">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-5xl text-gray-500 hover:text-gray-700"
+        >
           &times;
         </button>
 
@@ -176,8 +210,12 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
           <p className="text-center text-gray-500">Loading survey...</p>
         ) : (
           <>
-            <h2 className="text-xl font-bold text-center">{surveyData?.title}</h2>
-            <p className="text-sm text-center text-gray-500">{surveyData?.subtitle}</p>
+            <h2 className="text-xl font-bold text-center">
+              {surveyData?.title}
+            </h2>
+            <p className="text-sm text-center text-gray-500">
+              {surveyData?.subtitle}
+            </p>
 
             <div className="relative min-h-[200px] mt-4">
               <AnimatePresence mode="wait">
@@ -190,43 +228,74 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
                     transition={{ duration: 0.5, ease: "easeInOut" }}
                     className="w-full"
                   >
-                    <h3 className="text-lg font-semibold mb-2">{currentQuestion.question}</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {currentQuestion.question}
+                    </h3>
 
                     {/* Render Question Type */}
                     <div>
                       {currentQuestion.type === "single-choice" &&
                         currentQuestion.options.map((option, index) => (
-                          <div key={index} className="flex items-center space-x-2 mb-2">
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2 mb-2"
+                          >
                             <input
                               type="radio"
                               name={currentQuestion._id}
                               value={option.value}
-                              checked={responses[currentQuestion._id] === option.value}
-                              onChange={() => handleResponseChange(currentQuestion._id, option.value)}
+                              checked={
+                                responses[currentQuestion._id] === option.value
+                              }
+                              onChange={() =>
+                                handleResponseChange(
+                                  currentQuestion._id,
+                                  option.value
+                                )
+                              }
                               className="w-4 h-4"
                             />
-                            <label className="cursor-pointer">{option.value}</label>
+                            <label className="cursor-pointer">
+                              {option.value}
+                            </label>
                           </div>
                         ))}
 
                       {currentQuestion.type === "multiple-choice" &&
                         currentQuestion.options.map((option, index) => (
-                          <div key={index} className="flex items-center space-x-2 mb-2">
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2 mb-2"
+                          >
                             <input
                               type="checkbox"
                               value={option.value}
-                              checked={responses[currentQuestion._id]?.includes(option.value) || false}
+                              checked={
+                                responses[currentQuestion._id]?.includes(
+                                  option.value
+                                ) || false
+                              }
                               onChange={(e) => {
                                 const newValue = e.target.checked
-                                  ? [...(responses[currentQuestion._id] || []), option.value]
-                                  : (responses[currentQuestion._id] as string[] | undefined)?.filter(
-                                      (item) => item !== option.value
-                                    );
-                                handleResponseChange(currentQuestion._id, newValue);
+                                  ? [
+                                      ...(responses[currentQuestion._id] || []),
+                                      option.value,
+                                    ]
+                                  : (
+                                      responses[currentQuestion._id] as
+                                        | string[]
+                                        | undefined
+                                    )?.filter((item) => item !== option.value);
+                                handleResponseChange(
+                                  currentQuestion._id,
+                                  newValue
+                                );
                               }}
                               className="w-4 h-4"
                             />
-                            <label className="cursor-pointer">{option.value}</label>
+                            <label className="cursor-pointer">
+                              {option.value}
+                            </label>
                           </div>
                         ))}
 
@@ -235,32 +304,53 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
                           className="w-full border p-2 rounded-lg"
                           placeholder="Type your response..."
                           value={responses[currentQuestion._id] || ""}
-                          onChange={(e) => handleResponseChange(currentQuestion._id, e.target.value)}
+                          onChange={(e) =>
+                            handleResponseChange(
+                              currentQuestion._id,
+                              e.target.value
+                            )
+                          }
                         />
                       )}
 
                       {currentQuestion.type === "likert-scale" && (
                         <div className="space-y-4">
-                          {currentQuestion.likertQuestions.map((likertQ, idx) => (
-                            <div key={idx} className="flex flex-col">
-                              <span className="font-medium">{likertQ.question}</span>
-                              <div className="flex flex-wrap justify-between mt-2 gap-2">
-                                {likertQ.options.map((option, optionIdx) => (
-                                  <label key={optionIdx} className="flex flex-col items-center">
-                                    <input
-                                      type="radio"
-                                      name={`${currentQuestion._id}-${idx}`}
-                                      value={option}
-                                      checked={responses[`${currentQuestion._id}-${idx}`] === option}
-                                      onChange={() => handleResponseChange(`${currentQuestion._id}-${idx}`, option)}
-                                      className="w-4 h-4"
-                                    />
-                                    <span className="text-sm">{option}</span>
-                                  </label>
-                                ))}
+                          {currentQuestion.likertQuestions.map(
+                            (likertQ, idx) => (
+                              <div key={idx} className="flex flex-col">
+                                <span className="font-medium">
+                                  {likertQ.question}
+                                </span>
+                                <div className="flex flex-wrap justify-between mt-2 gap-2">
+                                  {likertQ.options.map((option, optionIdx) => (
+                                    <label
+                                      key={optionIdx}
+                                      className="flex flex-col items-center"
+                                    >
+                                      <input
+                                        type="radio"
+                                        name={`${currentQuestion._id}-${idx}`}
+                                        value={option}
+                                        checked={
+                                          responses[
+                                            `${currentQuestion._id}-${idx}`
+                                          ] === option
+                                        }
+                                        onChange={() =>
+                                          handleResponseChange(
+                                            `${currentQuestion._id}-${idx}`,
+                                            option
+                                          )
+                                        }
+                                        className="w-4 h-4"
+                                      />
+                                      <span className="text-sm">{option}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
                       )}
                     </div>
@@ -272,14 +362,20 @@ export default function SurveyForm({ isOpen, onClose, initialLocation }: SurveyF
             <div className="flex justify-between mt-4">
               <button
                 onClick={handlePrev}
-                disabled={currentSectionIndex === 0 && currentQuestionIndex === 0}
+                disabled={
+                  currentSectionIndex === 0 && currentQuestionIndex === 0
+                }
                 className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
               >
                 Previous
               </button>
 
-              {currentSectionIndex === sections.length - 1 && currentQuestionIndex === currentSection.questions.length - 1 ? (
-                <button onClick={handleSubmit} className="px-6 py-2 bg-green-500 text-white rounded">
+              {currentSectionIndex === sections.length - 1 &&
+              currentQuestionIndex === currentSection.questions.length - 1 ? (
+                <button
+                  onClick={handleSubmit}
+                  className="px-6 py-2 bg-green-500 text-white rounded"
+                >
                   Submit
                 </button>
               ) : (
