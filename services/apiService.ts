@@ -113,12 +113,6 @@ export const createEnumerators = async (
     const decodedToken = jwtDecode(token);
     const fieldCoordinatorId = decodedToken.sub;
 
-    //new
-    // Generate a unique ID for the enumerator
-    // const enumeratorId = uuidv4();
-
-    //new ends
-
     // Dynamically retrieve the selectedState for fieldCoordinator
     const getUserState = () => {
       // Replace this with your method of getting the user's state (e.g., from localStorage or API)
@@ -483,7 +477,7 @@ export const updateUserPassword = async (
         },
       }
     );
-    return response.data; 
+    return response.data;
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
       throw new Error(
@@ -492,5 +486,80 @@ export const updateUserPassword = async (
     } else {
       throw new Error("Unexpected error occurred while updating password");
     }
+  }
+};
+
+// export const getSurveyResponsesForFieldCoordinators = async () => {
+//   try {
+//     // Retrieve token from local storage
+//     const token = localStorage.getItem('accessToken');
+//     if (!token) {
+//       throw new Error('No token found');
+//     }
+//     const decodedToken = jwtDecode(token);
+//     const fieldCoordinatorId = decodedToken.sub;
+
+//     // Make the API call to fetch survey responses
+//     const response = await axios.get(`${API_BASE_URL}/responses`, {
+//       params: { fieldCoordinatorId },
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     return response.data;
+//   } catch (error) {
+//     toast.error('Failed to fetch survey responses');
+//     throw error;
+//   }
+// };
+// Function to fetch survey responses
+export const getSurveyResponsesByFieldCoordinator = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No token found");
+    }
+    const decodedToken = jwtDecode(token);
+    const fieldCoordinatorId = decodedToken.sub;
+
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/responses/${fieldCoordinatorId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// New function to fetch total responses count
+export const getTotalResponsesCountByFieldCoordinator = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    const decodedToken = jwtDecode(token);
+    const fieldCoordinatorId = decodedToken.sub;
+
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/responses/count/${fieldCoordinatorId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };

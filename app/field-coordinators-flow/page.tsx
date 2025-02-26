@@ -6,15 +6,40 @@ import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
 import {
   createEnumerators,
+  getSurveyResponsesByFieldCoordinator,
   fetchUserData,
   getEnumeratorCountByFieldCoordinator,
   updateUserProfile,
+  getTotalResponsesCountByFieldCoordinator,
 } from "@/services/apiService";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { FaEdit } from "react-icons/fa";
 import ResetPasswordModal from "@/components/ResetPasswordModal";
+
+// _id: string;
+//   surveyId: string;
+//   enumeratorId: string;
+//   responses: {
+//     questionId: string;
+//     answer: string | string[];
+//   }[];
+//   location: string;
+//   mediaUrl: string;
+//   submittedAt: string;
+interface SurveyData {
+  _id: string;
+  surveyId: string;
+  enumeratorId: string;
+  responses: {
+    questionId: string;
+    answer: string | string[];
+  }[];
+  location: string;
+  mediaUrl: string;
+  submittedAt: string;
+}
 
 export default function FieldCoordinatorsDashboard() {
   const [fieldCoordData, setFieldCoordData] = useState({
@@ -25,6 +50,12 @@ export default function FieldCoordinatorsDashboard() {
   });
 
   const [enumeratorCount, setEnumeratorCount] = useState(0);
+  const [totalResponsesCount, setTotalResponsesCount] = useState(0); // Add state for total responses count
+  const [surveyData, setSurveyData] = useState<SurveyData[]>([]);
+  const [isDataVisible, setIsDataVisible] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   // const [error, setError] = useState('');
 
   const [isEditMode, setIsEditMode] = useState(false); // Toggle Edit mode
@@ -66,8 +97,11 @@ export default function FieldCoordinatorsDashboard() {
         });
 
         // Fetch enumerator count
-        const count = await getEnumeratorCountByFieldCoordinator(userId);
-        setEnumeratorCount(count);
+        const enumcount = await getEnumeratorCountByFieldCoordinator(userId);
+        setEnumeratorCount(enumcount);
+        // Fetch total responses count
+        const totalCount = await getTotalResponsesCountByFieldCoordinator();
+        setTotalResponsesCount(totalCount.count); // Update the state with the total count
       } catch (error) {
         console.error("Error decoding token or fetching user data:", error);
       }
@@ -75,6 +109,23 @@ export default function FieldCoordinatorsDashboard() {
 
     fetchFieldCoordData();
   }, []);
+
+  useEffect(() => {
+    const fetchSurveyData = async () => {
+      try {
+        const data = await getSurveyResponsesByFieldCoordinator();
+        setSurveyData(data);
+        setError(""); // Clear errors only if successful
+      } catch (error) {
+        setError("Failed to fetch survey data.");
+        console.error("Error fetching survey responses:", error);
+      }
+    };
+
+    if (isDataVisible) {
+      fetchSurveyData();
+    }
+  }, [isDataVisible]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -110,12 +161,14 @@ export default function FieldCoordinatorsDashboard() {
   const [emailAddress, setEmailAddress] = useState("");
   const [role, setRole] = useState("enumerator");
   // const [isSurveyOpen, setIsSurveyOpen] = useState(false);
-  const [isDataVisible, setIsDataVisible] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [userId, setUserId] = useState("");
+  // const [surveyData, setSurveyData] = useState([]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   {
     error && <p className="text-red-500">{error}</p>;
@@ -166,29 +219,29 @@ export default function FieldCoordinatorsDashboard() {
     setIsClient(true);
   }, []);
 
-  const surveyData = [
-    {
-      id: 1,
-      enumerator: "John Doe",
-      date: "2024-02-10",
-      location: "Lagos",
-      responses: 15,
-    },
-    {
-      id: 2,
-      enumerator: "Jane Doe",
-      date: "2024-02-11",
-      location: "Abuja",
-      responses: 10,
-    },
-    {
-      id: 3,
-      enumerator: "Mark Smith",
-      date: "2024-02-12",
-      location: "Kano",
-      responses: 20,
-    },
-  ];
+  // const surveyData = [
+  //   {
+  //     id: 1,
+  //     enumerator: "John Doe",
+  //     date: "2024-02-10",
+  //     location: "Lagos",
+  //     responses: 15,
+  //   },
+  //   {
+  //     id: 2,
+  //     enumerator: "Jane Doe",
+  //     date: "2024-02-11",
+  //     location: "Abuja",
+  //     responses: 10,
+  //   },
+  //   {
+  //     id: 3,
+  //     enumerator: "Mark Smith",
+  //     date: "2024-02-12",
+  //     location: "Kano",
+  //     responses: 20,
+  //   },
+  // ];
 
   const handleResetPassword = () => {
     const token = localStorage.getItem("accessToken");
@@ -325,7 +378,7 @@ export default function FieldCoordinatorsDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Surveys Completed</h3>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{totalResponsesCount}</p>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
             <h3 className="text-lg font-semibold">Total Enumerators</h3>
@@ -410,6 +463,7 @@ export default function FieldCoordinatorsDashboard() {
               <thead className="bg-gray-100 border-b">
                 <tr>
                   <th className="p-3 text-left border">ID</th>
+                  <th className="p-3 text-left border">Survey</th>
                   <th className="p-3 text-left border">Enumerator</th>
                   <th className="p-3 text-left border">Date</th>
                   <th className="p-3 text-left border">Location</th>
@@ -418,12 +472,13 @@ export default function FieldCoordinatorsDashboard() {
               </thead>
               <tbody>
                 {surveyData.map((data) => (
-                  <tr key={data.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 border">{data.id}</td>
-                    <td className="p-3 border">{data.enumerator}</td>
-                    <td className="p-3 border">{data.date}</td>
+                  <tr key={data._id} className="border-b hover:bg-gray-50">
+                    <td className="p-3 border">{data._id}</td>
+                    <td className="p-3 border">{data.surveyId}</td>
+                    <td className="p-3 border">{data.enumeratorId}</td>
+                    {/* <td className="p-3 border">{data.date}</td>
                     <td className="p-3 border">{data.location}</td>
-                    <td className="p-3 border">{data.responses}</td>
+                    <td className="p-3 border">{data.responses}</td> */}
                   </tr>
                 ))}
               </tbody>
