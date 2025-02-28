@@ -31,6 +31,8 @@ interface Question {
   // options: string[];
   options: Option[]; // Update options to use the Option interface
   likertQuestions: LikertQuestion[];
+  // Add the allowOther property for single choice questions
+  allowOther?: boolean;
 }
 
 export default function Questions() {
@@ -100,7 +102,8 @@ export default function Questions() {
     );
     setSections(updatedSections);
     if (updatedSections.length === 0) {
-      setShowDeleteSection(false); // Hide the delete section button if no sections are left
+      setShowDeleteSection(false);
+      // Hide the delete section button if no sections are left
     }
   };
 
@@ -578,6 +581,44 @@ export default function Questions() {
                       >
                         + Add Option
                       </button>
+
+                      {/* Only for single-choice questions, render the "Allow Other" toggle */}
+                      {q.type === "single-choice" && (
+                        <div className="mt-4 flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={q.allowOther || false}
+                            onChange={(e) => {
+                              const newSections = [...sections];
+                              newSections[sectionIndex].questions[
+                                qIndex
+                              ].allowOther = e.target.checked;
+                              setSections(newSections);
+                            }}
+                          />
+                          <span className="ml-2 font-medium">
+                            Enable "Other" Option
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Optionally, you may render a preview input for the "Other" option.
+         In your actual respondent form, this field might be conditionally shown
+         only when the respondent selects the "Other" radio button. */}
+                      {q.type === "single-choice" && q.allowOther && (
+                        <div className="mt-4">
+                          <label className="block mb-2 font-medium">
+                            Other (please specify):
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
+                            placeholder="Type your answer here"
+                            // This is just a preview; in a live form you would allow input when "Other" is selected.
+                            disabled
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
