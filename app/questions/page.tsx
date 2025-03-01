@@ -622,7 +622,7 @@ export default function Questions() {
                             }}
                           />
                           <span className="ml-2 font-medium">
-                            Enable "Other" Option
+                            Enable &quot;Other&quot; Option
                           </span>
                         </div>
                       )}
