@@ -74,6 +74,7 @@ export default function SurveyForm({
   const [navigatedByNextSection, setNavigatedByNextSection] = useState(false);
   const [isLastQuestion, setIsLastQuestion] = useState(false);
   const [mediaCaptured, setMediaCaptured] = useState(false);
+  const [otherResponses, setOtherResponses] = useState<{ [key: string]: string }>({});
 
   // Initialize state for start time
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -169,15 +170,36 @@ export default function SurveyForm({
     }
   };
 
-  const handleResponseChange = (
-    questionId: string,
-    value: string | string[] | undefined
-  ) => {
-    setResponses((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
+  const handleResponseChange = (questionId: string, value: string | string[] | undefined) => {
+    if (value === "Other") {
+      setOtherResponses((prev) => ({ ...prev, [questionId]: "" })); // Initialize an empty input field
+    } else {
+      setOtherResponses((prev) => {
+        const updated = { ...prev };
+        delete updated[questionId]; // Remove "Other" response if another option is selected
+        return updated;
+      });
+    }
+
+    setResponses((prev) => ({ ...prev, [questionId]: value }));
   };
+
+  // Function to handle changes in the "Other" input field
+const handleOtherInputChange = (questionId: string, value: string) => {
+  setOtherResponses((prev) => ({ ...prev, [questionId]: value }));
+};
+
+
+  
+  // const handleResponseChange = (
+  //   questionId: string,
+  //   value: string | string[] | undefined
+  // ) => {
+  //   setResponses((prev) => ({
+  //     ...prev,
+  //     [questionId]: value,
+  //   }));
+  // };
 
   // Final submission after media upload
   const finalSubmit = async (mediaUrl: string) => {
@@ -185,37 +207,43 @@ export default function SurveyForm({
       setShowLocationApprovalModal(true);
       return;
     }
-
-    // Fallback: use the captured startTime if available, otherwise assign a new Date.
+  
     const effectiveStartTime = startTime ?? new Date();
-
+  
     try {
       setLoading(true);
+  
       const formattedResponses = Object.entries(responses).map(
-        ([questionId, answer]) => ({
-          questionId,
-          answer,
-        })
+        ([questionId, answer]) => {
+          // Check if the answer is "Other" and replace it with the custom response
+          const isOtherSelected = answer === "Other";
+          const customOtherResponse = otherResponses?.[questionId]; // Get the user's custom input
+          return {
+            questionId,
+            answer: isOtherSelected && customOtherResponse ? customOtherResponse : answer,
+          };
+        }
       );
+  
       const payload = {
         responses: formattedResponses,
         surveyId,
         location: location.address,
         mediaUrl,
-        startTime: effectiveStartTime, // Ensure a valid Date is passed
+        startTime: effectiveStartTime,
       };
-
-      const payloadString = JSON.stringify(payload);
-      
-      await submitQuestionnaire(JSON.parse(payloadString));      
+  
+      console.log(payload);
+  
+      await submitQuestionnaire(payload);
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Submission failed:", error);
     } finally {
       setLoading(false);
-      // setShowMediaUploadModal(false);
     }
   };
+  
 
   const handleMediaUploadSuccess = async (url: string) => {
     setMediaUrl(url);
@@ -288,35 +316,50 @@ export default function SurveyForm({
                         </h3>
 
                         {/* Render Question Type */}
-                        <div>
-                          {currentQuestion.type === "single-choice" &&
-                            currentQuestion.options.map((option, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center space-x-2 mb-2"
-                              >
-                                <input
-                                  type="radio"
-                                  name={currentQuestion._id}
-                                  value={option.value}
-                                  checked={
-                                    responses[currentQuestion._id] ===
-                                    option.value
-                                  }
-                                  onChange={() =>
-                                    handleResponseChange(
-                                      currentQuestion._id,
-                                      option.value
-                                    )
-                                  }
-                                  className="w-4 h-4"
-                                />
-                                <label className="cursor-pointer">
-                                  {option.value}
-                                </label>
-                              </div>
-                            ))}
+                        <div>               
+                          <div>
+                            {currentQuestion.type === "single-choice" && (
+                              <>
+                                {currentQuestion.options.map((option, index) => (
+                                  <div key={index} className="flex items-center space-x-2 mb-2">
+                                    <input
+                                      type="radio"
+                                      name={currentQuestion._id}
+                                      value={option.value}
+                                      checked={responses[currentQuestion._id] === option.value}
+                                      onChange={() => handleResponseChange(currentQuestion._id, option.value)}
+                                    />
+                                    <label>{option.value}</label>
+                                  </div>
+                                ))}
 
+                                {/* "Other" option */}
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <input
+                                    type="radio"
+                                    name={currentQuestion._id}
+                                    value="other"
+                                    checked={responses[currentQuestion._id] === "other"}
+                                    onChange={() => handleResponseChange(currentQuestion._id, "other")}
+                                  />
+                                  <label>Other</label>
+                                </div>
+
+                                {/* Input field for "Other" option */}
+                                {responses[currentQuestion._id] === "other" && (
+                                  <input
+                                    type="text"
+                                    className="border p-2 w-full mt-2"
+                                    placeholder="Please specify..."
+                                    value={responses[`${currentQuestion._id}_other`] || ""}
+                                    onChange={(e) =>
+                                      handleResponseChange(`${currentQuestion._id}_other`, e.target.value)
+                                    }
+                                  />
+                                )}
+                              </>
+                            )}
+                          </div>
                           {currentQuestion.type === "multiple-choice" &&
                             currentQuestion.options.map((option, index) => (
                               <div
