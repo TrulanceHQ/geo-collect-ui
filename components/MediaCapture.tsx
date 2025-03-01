@@ -447,8 +447,8 @@ export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
       mediaRecorder.current = recorder;
       recorder.start();
 
-      // Stop after 7 seconds
-      setTimeout(() => recorder.stop(), 7000);
+      // Stop after 20 seconds
+      setTimeout(() => recorder.stop(), 20000);
       
     } catch (error) {
       console.error("Error capturing audio:", error);
