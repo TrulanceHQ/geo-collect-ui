@@ -10,10 +10,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface LikertQuestion {
   question: string;
- 
+
   options: string[];
 }
-
 
 interface Option {
   value: string;
@@ -83,8 +82,6 @@ export default function Questions() {
     loadFormFromDraft();
   }, []);
 
-  
-
   const addSection = () => {
     setSections([
       ...sections,
@@ -138,7 +135,6 @@ export default function Questions() {
     setSections(newSections);
   };
 
-  
   const handleLikertOptionChange = (
     sectionIndex: number,
     qIndex: number,
@@ -153,7 +149,6 @@ export default function Questions() {
     setSections(newSections);
   };
 
-  
   const handleSectionQuestionTypeChange = (
     sectionIndex: number,
     questionIndex: number,
@@ -174,14 +169,11 @@ export default function Questions() {
     setSections(newSections);
   };
 
- 
-
   const addLikertQuestion = (sectionIndex: number, qIndex: number) => {
     const newSections = [...sections];
     newSections[sectionIndex].questions[qIndex].likertQuestions.push({
       question: "",
-    
-    
+
       options: [
         "Strongly Disagree",
         "Disagree",
@@ -192,8 +184,6 @@ export default function Questions() {
     });
     setSections(newSections);
   };
-
- 
 
   const handleLikertQuestionChange = (
     sectionIndex: number,
@@ -230,7 +220,6 @@ export default function Questions() {
     });
     setSections(newSections);
   };
-
 
   //above
   const addLikertOption = (
@@ -404,7 +393,17 @@ export default function Questions() {
             }}
           />
           <label className="block mb-2 font-medium">Survey Sub-title:</label>
-          <input
+          <textarea
+            // type="text"
+            className="w-full p-2 border rounded-md mb-4 h-40"
+            placeholder="Enter survey sub-title"
+            value={subtitle}
+            onChange={(e) => {
+              setSubtitle(e.target.value);
+              // handleTyping();
+            }}
+          ></textarea>
+          {/* <input
             type="text"
             className="w-full p-2 border rounded-md mb-4"
             placeholder="Enter survey sub-title"
@@ -413,7 +412,7 @@ export default function Questions() {
               setSubtitle(e.target.value);
               // handleTyping();
             }}
-          />
+          /> */}
           {sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="mt-4 p-4 border rounded-md">
               <label className="block mb-2 font-medium">Section Title:</label>
@@ -430,9 +429,9 @@ export default function Questions() {
                   <label className="block mb-2 font-medium">
                     Question {qIndex + 1}:
                   </label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border rounded-md mb-4"
+                  <textarea
+                    // type="text"
+                    className="w-full p-2 border rounded-md mb-4 h-40"
                     value={q.question}
                     onChange={(e) =>
                       handleSectionQuestionChange(
@@ -441,7 +440,7 @@ export default function Questions() {
                         e.target.value
                       )
                     }
-                  />
+                  ></textarea>
                   <label className="block mb-2 font-medium">
                     Select Question Type:
                   </label>
@@ -478,7 +477,7 @@ export default function Questions() {
                           <label className="block mb-2 font-medium">
                             Likert Question {lIndex + 1}:
                           </label>
-                         
+
                           <input
                             type="text"
                             className="w-full p-2 border rounded-md mb-4"
@@ -495,7 +494,6 @@ export default function Questions() {
                           <label className="block mb-2 font-medium">
                             Likert Scale Options:
                           </label>
-                        
 
                           <div className="flex flex-wrap gap-2 mb-4">
                             {likertQ.options.map((option, oIndex) => (
@@ -517,12 +515,10 @@ export default function Questions() {
                                     )
                                   }
                                 />
-                               
-                              
                               </div>
                             ))}
                           </div>
-                        
+
                           <button
                             className="bg-green-500 text-white px-3 py-1 rounded mt-2"
                             onClick={() =>
