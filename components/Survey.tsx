@@ -10,7 +10,7 @@ import SubmissionSuccessModal from "@/components/SubmissionSuccessModal";
 import LocationApprovalModal from "@/components/LocationApprovalModal";
 import MediaCapture from "@/components/MediaCapture";
 import { toast } from "react-toastify";
-import './../styles/globals.css';
+import "./../styles/globals.css";
 
 type SurveyFormProps = {
   isOpen: boolean;
@@ -182,7 +182,10 @@ export default function SurveyForm({
     }
   };
 
-  const handleResponseChange = (questionId: string, value: string | string[] | undefined) => {
+  const handleResponseChange = (
+    questionId: string,
+    value: string | string[] | undefined
+  ) => {
     if (value === "Other") {
       setOtherResponses((prev) => ({ ...prev, [questionId]: "" })); 
     } else {
@@ -197,9 +200,9 @@ export default function SurveyForm({
   };
 
   // Function to handle changes in the "Other" input field
-const handleOtherInputChange = (questionId: string, value: string) => {
-  setOtherResponses((prev) => ({ ...prev, [questionId]: value }));
-};
+  const handleOtherInputChange = (questionId: string, value: string) => {
+    setOtherResponses((prev) => ({ ...prev, [questionId]: value }));
+  };
 
 const finalSubmit = async (mediaUrl: string) => {
   if (!location || !location.address) {
@@ -308,7 +311,7 @@ const finalSubmit = async (mediaUrl: string) => {
                  </div>
         ) : (
           <>
-            {!mediaCaptured? (
+            {!mediaCaptured ? (
               <MediaCapture
                 onUploadSuccess={handleMediaUploadSuccess}
                 onClose={() => setShowMediaUploadModal(false)}
@@ -338,22 +341,35 @@ const finalSubmit = async (mediaUrl: string) => {
                         </h3>
 
                         {/* Render Question Type */}
-                        <div>               
+                        <div>
                           <div>
                             {currentQuestion.type === "single-choice" && (
                               <>
-                                {currentQuestion.options.map((option, index) => (
-                                  <div key={index} className="flex items-center space-x-2 mb-2">
-                                    <input
-                                      type="radio"
-                                      name={currentQuestion._id}
-                                      value={option.value}
-                                      checked={responses[currentQuestion._id] === option.value}
-                                      onChange={() => handleResponseChange(currentQuestion._id, option.value)}
-                                    />
-                                    <label>{option.value}</label>
-                                  </div>
-                                ))}
+                                {currentQuestion.options.map(
+                                  (option, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center space-x-2 mb-2"
+                                    >
+                                      <input
+                                        type="radio"
+                                        name={currentQuestion._id}
+                                        value={option.value}
+                                        checked={
+                                          responses[currentQuestion._id] ===
+                                          option.value
+                                        }
+                                        onChange={() =>
+                                          handleResponseChange(
+                                            currentQuestion._id,
+                                            option.value
+                                          )
+                                        }
+                                      />
+                                      <label>{option.value}</label>
+                                    </div>
+                                  )
+                                )}
 
                                 {/* "Other" option */}
                                 {currentQuestion.allowOther && (
@@ -526,7 +542,11 @@ const finalSubmit = async (mediaUrl: string) => {
                   </button>
 
                   <button
-                    onClick={isLastQuestion ? () => finalSubmit(mediaUrl as string) : handleNext}
+                    onClick={
+                      isLastQuestion
+                        ? () => finalSubmit(mediaUrl as string)
+                        : handleNext
+                    }
                     className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
                     disabled={!isCurrentQuestionAnswered()}
                   >
