@@ -202,7 +202,7 @@ export default function SurveyForm({
         surveyId,
         location: location.address,
         mediaUrl,
-        startTime: effectiveStartTime, // Ensure a valgid Date is passed
+        startTime: effectiveStartTime, // Ensure a dvalgid Date is passed
       };
 
       const payloadString = JSON.stringify(payload);
