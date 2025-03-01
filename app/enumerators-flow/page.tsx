@@ -20,10 +20,12 @@ interface Response {
   responses: {
     questionId: string;
     answer: string | string[];
+    question: string
   }[];
   location: string;
   mediaUrl: string;
   submittedAt: string;
+  startTime: string ;
 }
 
 export default function EnumeratorDashboard() {

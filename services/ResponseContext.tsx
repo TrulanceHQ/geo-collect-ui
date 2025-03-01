@@ -5,9 +5,11 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 interface Response {
   questionId: string;
   answer: string | string[];
+  question: string;
 }
 
 interface SurveyResponse {
+  startTime: string | number | Date;
   mediaUrl: string;
   location: string;
   _id: string;

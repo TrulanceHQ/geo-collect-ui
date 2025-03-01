@@ -79,11 +79,6 @@ export default function SurveyForm({
   const [startTime, setStartTime] = useState<Date | null>(null);
   const startTimeRef = useRef<Date | null>(null);
 
-  // Capture start time when the survey begins
-  // useEffect(() => {
-  //   setStartTime(new Date());
-  // }, []);
-
   // Set the start time once when the modal becomes open
   useEffect(() => {
     if (isOpen && !startTimeRef.current) {
@@ -212,10 +207,7 @@ export default function SurveyForm({
 
       const payloadString = JSON.stringify(payload);
       
-      await submitQuestionnaire(JSON.parse(payloadString));
-
-      // await submitQuestionnaire(payload);
-      
+      await submitQuestionnaire(JSON.parse(payloadString));      
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Submission failed:", error);
@@ -241,7 +233,6 @@ export default function SurveyForm({
   const handleApproveLocation = async () => {
     try {
       const locationData = await requestLocationPermission();
-      // console.log("Location approved:", locationData);
       setLocation(locationData);
       setShowLocationApprovalModal(false);
     } catch (error) {
@@ -262,7 +253,9 @@ export default function SurveyForm({
         </button>
 
         {loading ? (
-          <p className="text-center text-gray-500">Loading survey...</p>
+                <div className="flex justify-center items-center">
+                   <div className="spinner"></div>
+                 </div>
         ) : (
           <>
             {!mediaCaptured? (
@@ -450,14 +443,6 @@ export default function SurveyForm({
                 </div>
               </>
             )}
-
-            {/* Media Upload Modal */}
-            {/* {showMediaUploadModal && (
-              <MediaCapture
-                onUploadSuccess={handleMediaUploadSuccess}
-                onClose={() => setShowMediaUploadModal(false)}
-              />
-            )} */}
 
             {/* Success Modal */}
             <SubmissionSuccessModal
