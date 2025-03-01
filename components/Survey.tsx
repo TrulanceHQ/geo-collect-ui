@@ -77,6 +77,7 @@ export default function SurveyForm({
   const [otherResponses, setOtherResponses] = useState<{
     [key: string]: string;
   }>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize state for start time
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -123,6 +124,24 @@ export default function SurveyForm({
   };
 
   const handleNext = () => {
+    // const currentAnswer = responses[currentQuestion._id];
+    // if (!currentAnswer || (currentAnswer === "Other" && !responses[`${currentQuestion._id}_other`])) {
+    //   toast.error("Please select an option to continue.");
+    //   return;
+    // }
+
+    // Check if the current question is answered
+    const currentAnswer = responses[currentQuestion._id];
+    if (
+      !currentAnswer ||
+      (currentAnswer === "other" && !responses[`${currentQuestion._id}_other`])
+    ) {
+      setError("Please answer the question before proceeding.");
+      return;
+    }
+
+    setError(null); // Clear any previous error
+
     if (
       currentQuestion &&
       currentQuestion.options &&
@@ -193,16 +212,6 @@ export default function SurveyForm({
   const handleOtherInputChange = (questionId: string, value: string) => {
     setOtherResponses((prev) => ({ ...prev, [questionId]: value }));
   };
-
-  // const handleResponseChange = (
-  //   questionId: string,
-  //   value: string | string[] | undefined
-  // ) => {
-  //   setResponses((prev) => ({
-  //     ...prev,
-  //     [questionId]: value,
-  //   }));
-  // };
 
   // Final submission after media upload
   const finalSubmit = async (mediaUrl: string) => {
@@ -496,6 +505,10 @@ export default function SurveyForm({
                     )}
                   </AnimatePresence>
                 </div>
+
+                {error && (
+                  <p className="text-red-500 text-center mt-4">{error}</p>
+                )}
 
                 <div className="flex justify-between mt-4">
                   <button
