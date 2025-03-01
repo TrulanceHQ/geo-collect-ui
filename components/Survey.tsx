@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   fetchQuestionnaires,
@@ -73,6 +73,23 @@ export default function SurveyForm({
   const [navigatedByNextSection, setNavigatedByNextSection] = useState(false);
   const [isLastQuestion, setIsLastQuestion] = useState(false);
 
+  // Initialize state for start time
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const startTimeRef = useRef<Date | null>(null);
+
+  // Capture start time when the survey begins
+  // useEffect(() => {
+  //   setStartTime(new Date());
+  // }, []);
+
+  // Set the start time once when the modal becomes open
+  useEffect(() => {
+    if (isOpen && !startTimeRef.current) {
+      startTimeRef.current = new Date();
+      setStartTime(startTimeRef.current);
+    }
+  }, [isOpen]);
+
   // Fetch survey data when the modal opens
   useEffect(() => {
     if (isOpen) {
@@ -106,7 +123,11 @@ export default function SurveyForm({
   };
 
   const handleNext = () => {
-    if (currentQuestion && currentQuestion.options && currentQuestion.options.length > 0) {
+    if (
+      currentQuestion &&
+      currentQuestion.options &&
+      currentQuestion.options.length > 0
+    ) {
       const selectedOption = currentQuestion.options.find(
         (option) => option.value === responses[currentQuestion._id]
       );
@@ -168,6 +189,9 @@ export default function SurveyForm({
       return;
     }
 
+    // Fallback: use the captured startTime if available, otherwise assign a new Date.
+    const effectiveStartTime = startTime ?? new Date();
+
     try {
       setLoading(true);
       const formattedResponses = Object.entries(responses).map(
@@ -181,6 +205,7 @@ export default function SurveyForm({
         surveyId,
         location: location.address,
         mediaUrl,
+        startTime: effectiveStartTime, // Ensure a valid Date is passed
       };
       await submitQuestionnaire(payload);
       setShowSuccessModal(true);

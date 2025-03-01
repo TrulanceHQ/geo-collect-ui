@@ -8,10 +8,21 @@ import { toast } from "react-toastify";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+interface LikertOption {
+  label: string;
+  value: number;
+}
+
 interface LikertQuestion {
   question: string;
-  options: string[];
+  options: LikertOption[];
 }
+//new up
+
+// interface LikertQuestion {
+//   question: string;
+//   options: string[];
+// }
 
 interface Option {
   value: string;
@@ -142,19 +153,50 @@ export default function Questions() {
   };
 
   //likert option
+  // const handleLikertOptionChange = (
+  //   sectionIndex: number,
+  //   qIndex: number,
+  //   lIndex: number,
+  //   oIndex: number,
+  //   field: "label" | "value",
+  //   value: string | number
+  // ) => {
+  //   const newSections = [...sections];
+  //   newSections[sectionIndex].questions[qIndex].likertQuestions[lIndex].options[
+  //     oIndex
+  //   ][field] = value;
+  //   setSections(newSections);
+  // };
+
   const handleLikertOptionChange = (
     sectionIndex: number,
     qIndex: number,
     lIndex: number,
     oIndex: number,
-    value: string
+    field: keyof LikertOption,
+    value: string | number
   ) => {
     const newSections = [...sections];
-    newSections[sectionIndex].questions[qIndex].likertQuestions[lIndex].options[
-      oIndex
-    ] = value;
+    (
+      newSections[sectionIndex].questions[qIndex].likertQuestions[lIndex]
+        .options[oIndex] as any
+    )[field] = value;
     setSections(newSections);
   };
+
+  // const handleLikertOptionChange = (
+  //   sectionIndex: number,
+  //   qIndex: number,
+  //   lIndex: number,
+  //   oIndex: number,
+  //   value: string
+  // ) => {
+  //   const newSections = [...sections];
+  //   newSections[sectionIndex].questions[qIndex].likertQuestions[lIndex].options[
+  //     oIndex
+  //   ] = value;
+  //   setSections(newSections);
+  // };
 
   const handleSectionQuestionTypeChange = (
     sectionIndex: number,
@@ -176,14 +218,42 @@ export default function Questions() {
     setSections(newSections);
   };
 
+  // const addLikertQuestion = (sectionIndex: number, qIndex: number) => {
+  //   const newSections = [...sections];
+  //   newSections[sectionIndex].questions[qIndex].likertQuestions.push({
+  //     question: "",
+  //     options: ["", "", "", "", ""],
+  //   });
+  //   setSections(newSections);
+  // };
+
   const addLikertQuestion = (sectionIndex: number, qIndex: number) => {
     const newSections = [...sections];
     newSections[sectionIndex].questions[qIndex].likertQuestions.push({
       question: "",
-      options: ["", "", "", "", ""],
+      options: [
+        { label: "Strongly Disagree", value: 1 },
+        { label: "Disagree", value: 2 },
+        { label: "Neutral", value: 3 },
+        { label: "Agree", value: 4 },
+        { label: "Strongly Agree", value: 5 },
+      ],
     });
     setSections(newSections);
   };
+
+  // const handleLikertQuestionChange = (
+  //   sectionIndex: number,
+  //   qIndex: number,
+  //   lIndex: number,
+  //   value: string
+  // ) => {
+  //   const newSections = [...sections];
+  //   newSections[sectionIndex].questions[qIndex].likertQuestions[
+  //     lIndex
+  //   ].question = value;
+  //   setSections(newSections);
+  // };
 
   const handleLikertQuestionChange = (
     sectionIndex: number,
@@ -197,7 +267,6 @@ export default function Questions() {
     ].question = value;
     setSections(newSections);
   };
-
   const handleOptionChange = (
     sectionIndex: number,
     qIndex: number,
@@ -218,6 +287,25 @@ export default function Questions() {
     newSections[sectionIndex].questions[qIndex].options.push({
       value: "",
       nextSection: null,
+    });
+    setSections(newSections);
+  };
+
+  //new
+
+  const addLikertOption = (
+    sectionIndex: number,
+    qIndex: number,
+    lIndex: number
+  ) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].questions[qIndex].likertQuestions[
+      lIndex
+    ].options.push({
+      label: "",
+      value:
+        newSections[sectionIndex].questions[qIndex].likertQuestions[lIndex]
+          .options.length + 1,
     });
     setSections(newSections);
   };
@@ -455,6 +543,19 @@ export default function Questions() {
                           <label className="block mb-2 font-medium">
                             Likert Question {lIndex + 1}:
                           </label>
+                          {/* <input
+                            type="text"
+                            className="w-full p-2 border rounded-md mb-4"
+                            value={likertQ.question}
+                            onChange={(e) =>
+                              handleLikertQuestionChange(
+                                sectionIndex,
+                                qIndex,
+                                lIndex,
+                                e.target.value
+                              )
+                            }
+                          /> */}
                           <input
                             type="text"
                             className="w-full p-2 border rounded-md mb-4"
@@ -471,7 +572,7 @@ export default function Questions() {
                           <label className="block mb-2 font-medium">
                             Likert Scale Options:
                           </label>
-
+                          {/* 
                           <div className="flex flex-wrap gap-2 mb-4">
                             {likertQ.options.map((option, oIndex) => (
                               <input
@@ -488,23 +589,63 @@ export default function Questions() {
                                       oIndex,
                                       e.target.value
                                     )
-                                  // handleOptionChange(
-                                  //   sectionIndex,
-                                  //   qIndex,
-                                  //   oIndex,
-                                  //   e.target.value,
-                                  //   null
-                                  // )
+                                  
                                 }
                               />
                             ))}
-                          </div>
+                          </div> */}
 
-                          <button
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {likertQ.options.map((option, oIndex) => (
+                              <div key={oIndex} className="flex gap-2 mb-2">
+                                <input
+                                  type="text"
+                                  className="w-1/2 p-2 border rounded-md"
+                                  placeholder="Label"
+                                  value={option.label}
+                                  onChange={(e) =>
+                                    handleLikertOptionChange(
+                                      sectionIndex,
+                                      qIndex,
+                                      lIndex,
+                                      oIndex,
+                                      "label",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                                <input
+                                  type="number"
+                                  className="w-1/2 p-2 border rounded-md"
+                                  placeholder="Value"
+                                  value={option.value}
+                                  onChange={(e) =>
+                                    handleLikertOptionChange(
+                                      sectionIndex,
+                                      qIndex,
+                                      lIndex,
+                                      oIndex,
+                                      "value",
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          {/* <button
                             className="bg-green-500 text-white px-3 py-1 rounded mt-2"
                             onClick={() => addOption(sectionIndex, qIndex)} // Removed lIndex
                           >
                             + Add Option
+                          </button> */}
+                          <button
+                            className="bg-green-500 text-white px-3 py-1 rounded mt-2"
+                            onClick={() =>
+                              addLikertOption(sectionIndex, qIndex, lIndex)
+                            }
+                          >
+                            + Add Likert Option
                           </button>
                         </div>
                       ))}
