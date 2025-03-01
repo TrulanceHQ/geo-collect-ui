@@ -10,7 +10,7 @@ import SubmissionSuccessModal from "@/components/SubmissionSuccessModal";
 import LocationApprovalModal from "@/components/LocationApprovalModal";
 import MediaCapture from "@/components/MediaCapture";
 import { toast } from "react-toastify";
-import './../styles/globals.css';
+import "./../styles/globals.css";
 
 type SurveyFormProps = {
   isOpen: boolean;
@@ -202,12 +202,12 @@ export default function SurveyForm({
         surveyId,
         location: location.address,
         mediaUrl,
-        startTime: effectiveStartTime, // Ensure a valid Date is passed
+        startTime: effectiveStartTime, // Ensure a valgid Date is passed
       };
 
       const payloadString = JSON.stringify(payload);
-      
-      await submitQuestionnaire(JSON.parse(payloadString));      
+
+      await submitQuestionnaire(JSON.parse(payloadString));
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Submission failed:", error);
@@ -253,12 +253,12 @@ export default function SurveyForm({
         </button>
 
         {loading ? (
-                <div className="flex justify-center items-center">
-                   <div className="spinner"></div>
-                 </div>
+          <div className="flex justify-center items-center">
+            <div className="spinner"></div>
+          </div>
         ) : (
           <>
-            {!mediaCaptured? (
+            {!mediaCaptured ? (
               <MediaCapture
                 onUploadSuccess={handleMediaUploadSuccess}
                 onClose={() => setShowMediaUploadModal(false)}
@@ -334,15 +334,14 @@ export default function SurveyForm({
                                   onChange={(e) => {
                                     const newValue = e.target.checked
                                       ? [
-                                          ...(responses[
-                                            currentQuestion._id
-                                          ] || []),
+                                          ...(responses[currentQuestion._id] ||
+                                            []),
                                           option.value,
                                         ]
                                       : (
-                                          responses[
-                                            currentQuestion._id
-                                          ] as string[] | undefined
+                                          responses[currentQuestion._id] as
+                                            | string[]
+                                            | undefined
                                         )?.filter(
                                           (item) => item !== option.value
                                         );
@@ -435,7 +434,11 @@ export default function SurveyForm({
                   </button>
 
                   <button
-                    onClick={isLastQuestion ? () => finalSubmit(mediaUrl as string) : handleNext}
+                    onClick={
+                      isLastQuestion
+                        ? () => finalSubmit(mediaUrl as string)
+                        : handleNext
+                    }
                     className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
                   >
                     {isLastQuestion ? "Submit" : "Next"}
