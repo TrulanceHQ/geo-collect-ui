@@ -98,7 +98,7 @@ export default function SurveyForm({
       fetchQuestionnaires()
         .then(({ surveys }) => {
           if (surveys?.length > 0) {
-            const lastSurvey = surveys[surveys.length - 2];
+            const lastSurvey = surveys[surveys.length - 1];
             setSurveyData(lastSurvey);
             setSurveyId(lastSurvey._id);
           }
