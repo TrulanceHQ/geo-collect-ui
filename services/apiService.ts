@@ -544,6 +544,60 @@ export const getTotalResponsesCountByFieldCoordinator = async () => {
 
 //fetch all data for admin
 
+// types.ts
+export interface SurveyResponse {
+  _id: string;
+  surveyId: {
+    title: string;
+    subtitle: string;
+  };
+  enumeratorId: {
+    firstName: string;
+    lastName: string;
+    fieldCoordinatorId: {
+      firstName: string;
+      lastName: string;
+      selectedState: string;
+    };
+  };
+  metric: number; // Adjust the type of 'metric' based on your actual data structure
+  // Add other fields as needed
+}
+
+// export const fetchAllSurveyResponsesByAdmin = async (
+//   state?: string
+// ): Promise<SurveyResponse[]> => {
+//   try {
+//     const token = localStorage.getItem("accessToken"); // Retrieve token from storage
+
+//     if (!token) {
+//       console.error("No authentication token found");
+//       throw new Error("No authentication token found");
+//     }
+
+//     const response = await axios.get(
+//       `${API_BASE_URL}/enumerator/all-responses-by-admin`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`, // Include token in request
+//         },
+//         params: state ? { state } : {}, // Include state as query param if provided
+//       }
+//     );
+
+//     // Ensure response format is correct
+//     if (!Array.isArray(response.data)) {
+//       console.error("Unexpected response format:", response.data);
+//       return [];
+//     }
+
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching survey responses:", error);
+//     return [];
+//   }
+// };
+
 export const fetchAllSurveyResponsesByAdmin = async () => {
   try {
     const token = localStorage.getItem("accessToken"); // Retrieve token from storage
@@ -559,6 +613,7 @@ export const fetchAllSurveyResponsesByAdmin = async () => {
         headers: {
           Authorization: `Bearer ${token}`, // Include token in request
         },
+        // params: state ? { state } : {}, // Include state as query param
       }
     );
 
