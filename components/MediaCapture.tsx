@@ -548,7 +548,7 @@ export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
         {!isRecording && !capturingImage && !previewUrl && (
           <div className="space-y-1">
             <button onClick={startCaptureAudio} className="w-full p-2 bg-green-500 text-white rounded">
-              Record Audio (7s)
+              Record Audio (20s)
             </button>
             <button onClick={captureImage} className="w-full p-2 bg-yellow-500 text-white rounded">
               Capture Image

@@ -10,7 +10,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface LikertQuestion {
   question: string;
- 
   options: string[];
 }
 
@@ -357,7 +356,7 @@ export default function Questions() {
       }
 
       const data = await response.json();
-      console.log("Survey created successfully:", data);
+      // console.log("Survey created successfully:", data);
       toast("Survey created successfully!");
 
       setTitle("");
@@ -365,7 +364,7 @@ export default function Questions() {
       setSections([]);
       setIsSubmitting(false);
     } catch (error) {
-      console.error("Error submitting survey:", error);
+      // console.error("Error submitting survey:", error);
       alert("An error occurred while submitting the survey.");
       setIsSubmitting(false);
     }
