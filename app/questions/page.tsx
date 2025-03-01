@@ -604,7 +604,27 @@ export default function Questions() {
                       </button>
 
                       {/* Only for single-choice questions, render the "Allow Other" toggle */}
-                      {q.type === "single-choice" && (
+                      {/* {q.type === "single-choice" && (
+                        <div className="mt-4 flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={q.allowOther || false}
+                            onChange={(e) => {
+                              const newSections = [...sections];
+                              newSections[sectionIndex].questions[
+                                qIndex
+                              ].allowOther = e.target.checked;
+                              setSections(newSections);
+                            }}
+                          />
+                          <span className="ml-2 font-medium">
+                            Enable &quot;Other&quot; Option
+                          </span>
+                        </div>
+                      )} */}
+
+                      {(q.type === "single-choice" ||
+                        q.type === "multiple-choice") && (
                         <div className="mt-4 flex items-center">
                           <input
                             type="checkbox"
@@ -626,7 +646,7 @@ export default function Questions() {
                       {/* Optionally, you may render a preview input for the "Other" option.
          In your actual respondent form, this field might be conditionally shown
          only when the respondent selects the "Other" radio button. */}
-                      {q.type === "single-choice" && q.allowOther && (
+                      {/* {q.type === "single-choice" && q.allowOther && (
                         <div className="mt-4">
                           <label className="block mb-2 font-medium">
                             Other (please specify):
@@ -639,7 +659,22 @@ export default function Questions() {
                             disabled
                           />
                         </div>
-                      )}
+                      )} */}
+                      {(q.type === "single-choice" ||
+                        q.type === "multiple-choice") &&
+                        q.allowOther && (
+                          <div className="mt-4">
+                            <label className="block mb-2 font-medium">
+                              Other (please specify):
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full p-2 border rounded-md"
+                              placeholder="Type your answer here"
+                              disabled
+                            />
+                          </div>
+                        )}
                     </div>
                   )}
 
