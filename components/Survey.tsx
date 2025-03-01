@@ -38,6 +38,7 @@ interface Question {
   options: Option[];
   _id: string;
   likertQuestions: { question: string; options: string[] }[];
+  allowOther?: boolean; // Add allowOther property
 }
 
 interface Section {
@@ -97,7 +98,7 @@ export default function SurveyForm({
       fetchQuestionnaires()
         .then(({ surveys }) => {
           if (surveys?.length > 0) {
-            const lastSurvey = surveys[surveys.length - 1];
+            const lastSurvey = surveys[surveys.length - 2];
             setSurveyData(lastSurvey);
             setSurveyId(lastSurvey._id);
           }
@@ -200,159 +201,67 @@ const handleOtherInputChange = (questionId: string, value: string) => {
   setOtherResponses((prev) => ({ ...prev, [questionId]: value }));
 };
 
-  // Final submission after media upload
-  // const finalSubmit = async (mediaUrl: string) => {
-  //   if (!location || !location.address) {
-  //     setShowLocationApprovalModal(true);
-  //     return;
-  //   }
-  
-  //   const effectiveStartTime = startTime ?? new Date();
-  
-  //   try {
-  //     setLoading(true);
-  
-  //     const formattedResponses = Object.entries(responses).map(
-  //       ([questionId, answer]) => {
-  //         // Check if the answer is "Other" and replace it with the custom response
-  //         const isOtherSelected = answer === "Other";
-  //         const customOtherResponse = otherResponses?.[questionId]; // Get the user's custom input
-  //         return {
-  //           questionId,
-  //           answer: isOtherSelected && customOtherResponse ? customOtherResponse : answer,
-  //         };
-  //       }
-  //     );
-  
-  //     const payload = {
-  //       responses: formattedResponses,
-  //       surveyId,
-  //       location: location.address,
-  //       mediaUrl,
-  //       startTime: effectiveStartTime,
-  //     };
-  
-  //     console.log(payload);
-  
-  //     await submitQuestionnaire(payload);
-  //     setShowSuccessModal(true);
-  //   } catch (error) {
-  //     console.error("Submission failed:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+const finalSubmit = async (mediaUrl: string) => {
+  if (!location || !location.address) {
+    setShowLocationApprovalModal(true);
+    return;
+  }
 
-  // const finalSubmit = async (mediaUrl: string) => {
-  //   if (!location || !location.address) {
-  //     setShowLocationApprovalModal(true);
-  //     return;
-  //   }
-  
-  //   const effectiveStartTime = startTime ?? new Date();
-  
-  //   try {
-  //     setLoading(true);
-  
-  //     const formattedResponses = Object.entries(responses).map(
-  //       ([questionId, answer]) => {
-  //         const question = surveyData?.sections
-  //           .flatMap((section) => section.questions)
-  //           .find((q) => q._id === questionId);
-  
-  //         if (question?.type === "likert-scale") {
-  //           return question.likertQuestions.map((likertQ, idx) => ({
-  //             questionId: `${questionId}-${idx}`,
-  //             question: likertQ.question,
-  //             answer: responses[`${questionId}-${idx}`],
-  //           }));
-  //         }
-  
-  //         const isOtherSelected = answer === "Other";
-  //         const customOtherResponse = otherResponses?.[questionId];
-  //         return {
-  //           questionId,
-  //           question: question?.question,
-  //           answer: isOtherSelected && customOtherResponse ? customOtherResponse : answer,
-  //         };
-  //       }
-  //     ).flat();
-  
-  //     const payload = {
-  //       responses: formattedResponses,
-  //       surveyId,
-  //       location: location.address,
-  //       mediaUrl,
-  //       startTime: effectiveStartTime,
-  //     };
-  
-  //     console.log(payload);
-  
-  //     await submitQuestionnaire(payload);
-  //     setShowSuccessModal(true);
-  //     localStorage.removeItem("surveyDraft"); // Clear the draft after successful submission
-  //   } catch (error) {
-  //     console.error("Submission failed:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const effectiveStartTime = startTime ?? new Date();
 
-  const finalSubmit = async (mediaUrl: string) => {
-    if (!location || !location.address) {
-      setShowLocationApprovalModal(true);
-      return;
-    }
-  
-    const effectiveStartTime = startTime ?? new Date();
-  
-    try {
-      setLoading(true);
-  
-      const formattedResponses = Object.entries(responses).map(
-        ([questionId, answer]) => {
-          const question = surveyData?.sections
-            .flatMap((section) => section.questions)
-            .find((q) => q._id === questionId);
-  
-          if (question?.type === "likert-scale") {
-            return question.likertQuestions.map((likertQ, idx) => ({
-              questionId: `${questionId}-${idx}`,
-              question: likertQ.question,
-              answer: responses[`${questionId}-${idx}`],
-            }));
-          }
-  
-          const isOtherSelected = answer === "Other";
-          const customOtherResponse = otherResponses?.[questionId];
-          return {
-            questionId,
-            question: question?.question,
-            answer: isOtherSelected && customOtherResponse ? customOtherResponse : answer,
-          };
-        }
-      ).flat();
-  
-      const payload = {
-        responses: formattedResponses,
-        surveyId,
-        location: location.address,
-        mediaUrl,
-        startTime: effectiveStartTime,
+  try {
+    setLoading(true);
+
+    const formattedResponses = Object.entries(responses).map(([questionId, answer]) => {
+      const question = surveyData?.sections
+        .flatMap((section) => section.questions)
+        .find((q) => q._id === questionId.split('-')[0]);
+
+      if (question?.type === "likert-scale") {
+        return question.likertQuestions.map((likertQ, idx) => ({
+          questionId: `${questionId.split('-')[0]}-${idx}`,
+          question: likertQ.question,
+          answer: responses[`${questionId.split('-')[0]}-${idx}`],
+        }));
+      }
+
+      if (Array.isArray(answer)) {
+        // Multi-choice question
+        return {
+          questionId,
+          question: question?.question,
+          answer: answer.map((option) =>
+            option === "Other" && otherResponses[questionId] ? otherResponses[questionId] : option
+          ),
+        };
+      }
+
+      return {
+        questionId,
+        question: question?.question,
+        answer: answer === "Other" && otherResponses[questionId] ? otherResponses[questionId] : answer,
       };
-  
-      console.log(payload);
-  
-      await submitQuestionnaire(payload);
-      setShowSuccessModal(true);
-      localStorage.removeItem("surveyDraft"); // Clear the draft after successful submission
-    } catch (error) {
-      console.error("Submission failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+    }).flat();
+
+    const payload = {
+      responses: formattedResponses,
+      surveyId,
+      location: location.address,
+      mediaUrl,
+      startTime: effectiveStartTime,
+    };
+
+    console.log(payload);
+
+    await submitQuestionnaire(payload);
+    setShowSuccessModal(true);
+    localStorage.removeItem("surveyDraft"); // Clear the draft after successful submission
+  } catch (error) {
+    console.error("Submission failed:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleMediaUploadSuccess = async (url: string) => {
     setMediaUrl(url);
@@ -447,86 +356,99 @@ const handleOtherInputChange = (questionId: string, value: string) => {
                                 ))}
 
                                 {/* "Other" option */}
-                                <div className="flex items-center space-x-2 mb-2">
-                                  <input
-                                    type="radio"
-                                    name={currentQuestion._id}
-                                    value="other"
-                                    checked={responses[currentQuestion._id] === "other"}
-                                    onChange={() => handleResponseChange(currentQuestion._id, "other")}
-                                  />
-                                  <label>Other</label>
-                                </div>
+                                {currentQuestion.allowOther && (
+                                  <>
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <input
+                                        type="radio"
+                                        name={currentQuestion._id}
+                                        value="Other"
+                                        checked={responses[currentQuestion._id] === "Other"}
+                                        onChange={() => handleResponseChange(currentQuestion._id, "Other")}
+                                      />
+                                      <label>Other</label>
+                                    </div>
 
-                                {/* Input field for "Other" option */}
-                                {responses[currentQuestion._id]?.includes("other") && (
-                                  <input
-                                    type="text"
-                                    className="border p-2 w-full mt-2"
-                                    placeholder="Please specify..."
-                                    value={otherResponses[currentQuestion._id] || ""}
-                                    onChange={(e) => handleOtherInputChange(currentQuestion._id, e.target.value)}
-                                  />
+                                    {/* Input field for "Other" option */}
+                                    {responses[currentQuestion._id] === "Other" && (
+                                      <input
+                                        type="text"
+                                        className="border p-2 w-full mt-2"
+                                        placeholder="Please specify..."
+                                        value={otherResponses[currentQuestion._id] || ""}
+                                        onChange={(e) =>
+                                          handleOtherInputChange(currentQuestion._id, e.target.value)
+                                        }
+                                      />
+                                    )}
+                                  </>
                                 )}
                               </>
-                            )}
-
-                                {/* Input field for "Other" option
-                                {responses[currentQuestion._id] === "other" && (
-                                  <input
-                                    type="text"
-                                    className="border p-2 w-full mt-2"
-                                    placeholder="Please specify..."
-                                    value={responses[`${currentQuestion._id}_other`] || ""}
-                                    onChange={(e) =>
-                                      handleResponseChange(`${currentQuestion._id}_other`, e.target.value)
-                                    }
-                                  />
-                                )}
-                              </>
-                            )} */}
+                            )} 
                           </div>
-                          {currentQuestion.type === "multiple-choice" &&
-                            currentQuestion.options.map((option, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center space-x-2 mb-2"
-                              >
-                                <input
-                                  type="checkbox"
-                                  value={option.value}
-                                  checked={
-                                    responses[currentQuestion._id]?.includes(
-                                      option.value
-                                    ) || false
-                                  }
-                                  onChange={(e) => {
-                                    const newValue = e.target.checked
-                                      ? [
-                                          ...(responses[
-                                            currentQuestion._id
-                                          ] || []),
-                                          option.value,
-                                        ]
-                                      : (
-                                          responses[
-                                            currentQuestion._id
-                                          ] as string[] | undefined
-                                        )?.filter(
-                                          (item) => item !== option.value
-                                        );
-                                    handleResponseChange(
-                                      currentQuestion._id,
-                                      newValue
-                                    );
-                                  }}
-                                  className="w-4 h-4"
-                                />
-                                <label className="cursor-pointer">
-                                  {option.value}
-                                </label>
-                              </div>
-                            ))}
+                          {currentQuestion.type === "multiple-choice" && (
+                            <>
+                              {currentQuestion.options.map((option, index) => (
+                                <div key={index} className="flex items-center space-x-2 mb-2">
+                                  <input
+                                    type="checkbox"
+                                    value={option.value}
+                                    checked={
+                                      responses[currentQuestion._id]?.includes(option.value) || false
+                                    }
+                                    onChange={(e) => {
+                                      const newValue = e.target.checked
+                                        ? [...(responses[currentQuestion._id] || []), option.value]
+                                        : (responses[currentQuestion._id] as string[] | undefined)?.filter(
+                                            (item) => item !== option.value
+                                          );
+                                      handleResponseChange(currentQuestion._id, newValue);
+                                    }}
+                                    className="w-4 h-4"
+                                  />
+                                  <label className="cursor-pointer">{option.value}</label>
+                                </div>
+                              ))}
+
+                              {/* "Other" option */}
+                              {currentQuestion.allowOther && (
+                                <>
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <input
+                                      type="checkbox"
+                                      value="Other"
+                                      checked={
+                                        responses[currentQuestion._id]?.includes("Other") || false
+                                      }
+                                      onChange={(e) => {
+                                        const newValue = e.target.checked
+                                          ? [...(responses[currentQuestion._id] || []), "Other"]
+                                          : (responses[currentQuestion._id] as string[] | undefined)?.filter(
+                                              (item) => item !== "Other"
+                                            );
+                                        handleResponseChange(currentQuestion._id, newValue);
+                                      }}
+                                      className="w-4 h-4"
+                                    />
+                                    <label className="cursor-pointer">Other</label>
+                                  </div>
+
+                                  {/* Input field for "Other" option */}
+                                  {responses[currentQuestion._id]?.includes("Other") && (
+                                    <input
+                                      type="text"
+                                      className="border p-2 w-full mt-2"
+                                      placeholder="Please specify..."
+                                      value={otherResponses[currentQuestion._id] || ""}
+                                      onChange={(e) =>
+                                        handleOtherInputChange(currentQuestion._id, e.target.value)
+                                      }
+                                    />
+                                  )}
+                                </>
+                              )}
+                            </>
+                          )}
 
                           {currentQuestion.type === "text" && (
                             <textarea

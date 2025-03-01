@@ -538,7 +538,7 @@ export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
         )}
 
         {/* Show recording/capturing status */}
-        {isRecording && <p className="mt-4 text-red-500 font-bold text-center">Recording... (7s max)</p>}
+        {isRecording && <p className="mt-4 text-red-500 font-bold text-center">Recording... (20s max)</p>}
         {capturingImage && <p className="mt-4 text-blue-500 font-bold text-center">Capturing Image...</p>}
 
         {/* Canvas for image capture */}
