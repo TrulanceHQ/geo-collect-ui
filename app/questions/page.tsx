@@ -363,7 +363,7 @@ export default function Questions() {
     <div className="relative p-6">
       <div className="absolute top-4 right-6">
         <Image
-          src="/digiplus.png"
+          src="/logo.png"
           alt="Company Logo"
           width={120}
           height={50}

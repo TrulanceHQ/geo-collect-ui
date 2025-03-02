@@ -20,12 +20,12 @@ interface Response {
   responses: {
     questionId: string;
     answer: string | string[];
-    question: string
+    question: string;
   }[];
   location: string;
   mediaUrl: string;
   submittedAt: string;
-  startTime: string ;
+  startTime: string;
 }
 
 export default function EnumeratorDashboard() {
@@ -227,7 +227,7 @@ export default function EnumeratorDashboard() {
         {/* Logo at the top right */}
         <div className="absolute top-4 right-6">
           <Image
-            src="/digiplus.png"
+            src="/logo.png"
             alt="Company Logo"
             width={120}
             height={50}
