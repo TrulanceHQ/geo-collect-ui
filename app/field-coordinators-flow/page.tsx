@@ -6,11 +6,11 @@ import Image from "next/image";
 import ProtectedPage from "@/components/ProtectedPage";
 import {
   createEnumerators,
-  getSurveyResponsesByFieldCoordinator,
+  // getSurveyResponsesByFieldCoordinator,
   fetchUserData,
   getEnumeratorCountByFieldCoordinator,
   updateUserProfile,
-  getTotalResponsesCountByFieldCoordinator,
+  // getTotalResponsesCountByFieldCoordinator,
 } from "@/services/apiService";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -100,8 +100,8 @@ export default function FieldCoordinatorsDashboard() {
         const enumcount = await getEnumeratorCountByFieldCoordinator(userId);
         setEnumeratorCount(enumcount);
         // Fetch total responses count
-        const totalCount = await getTotalResponsesCountByFieldCoordinator();
-        setTotalResponsesCount(totalCount.count); // Update the state with the total count
+        // const totalCount = await getTotalResponsesCountByFieldCoordinator();
+        // setTotalResponsesCount(totalCount.count); // Update the state with the total count
       } catch (error) {
         console.error("Error decoding token or fetching user data:", error);
       }

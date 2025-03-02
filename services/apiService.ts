@@ -642,7 +642,7 @@ export const getSurveyResponsesByFieldCoordinator = async (
 
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/enumerator/by-field-coordinator/${fieldCoordinatorId}`,
+      `${API_BASE_URL}/api/v1/enumerator/survey-responses/${fieldCoordinatorId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -651,6 +651,7 @@ export const getSurveyResponsesByFieldCoordinator = async (
     );
     return response.data;
   } catch (error) {
+    console.error("Failed to fetch survey responses:", error);
     throw new Error("Failed to fetch survey responses");
   }
 };
