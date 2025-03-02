@@ -13,7 +13,6 @@
 // const uploadPreset = "geo-collect";
 // const cloudName = "dc2qyc09d"
 
-
 // export default function MediaCapture({ onUploadSuccess, onClose }: MediaCaptureProps) {
 //   const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
 //   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -68,7 +67,7 @@
 
 //       // Stop after 15 seconds
 //       setTimeout(() => recorder.stop(), 7000);
-      
+
 //     } catch (error) {
 //       console.error("Error capturing media:", error);
 //     }
@@ -102,7 +101,7 @@
 //         stream.getTracks().forEach((track) => track.stop());
 //         setCapturingImage(false);
 //       }, 2000);
-      
+
 //     } catch (error) {
 //       console.error("Error capturing image:", error);
 //     }
@@ -139,7 +138,7 @@
 //   return (
 //     // <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
 //       <div className="bg-white mt-10 p-6 rounded-lg shadow-lg w-[60%] relative ml-[20%]">
-      
+
 //         <h2 className="mt-4 text-lg font-semibold text-center mb-10">Capture Media</h2>
 
 //         {/* Show live camera feed while recording or capturing */}
@@ -211,8 +210,10 @@ interface MediaCaptureProps {
   onClose: () => void;
 }
 
-const uploadPreset = "geo-collect";
-const cloudName = "dc2qyc09d";
+const uploadPreset = "geotrak";
+const cloudName = "dzdg994hc";
+// const uploadPreset = "geo-collect";
+// const cloudName = "dc2qyc09d";
 
 // export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
 //   const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
@@ -266,7 +267,7 @@ const cloudName = "dc2qyc09d";
 
 //       // Stop after 7 seconds
 //       setTimeout(() => recorder.stop(), 7000);
-      
+
 //     } catch (error) {
 //       console.error("Error capturing media:", error);
 //     }
@@ -301,7 +302,7 @@ const cloudName = "dc2qyc09d";
 //         stream.getTracks().forEach((track) => track.stop());
 //         setCapturingImage(false);
 //       }, 2000);
-      
+
 //     } catch (error) {
 //       console.error("Error capturing image:", error);
 //     }
@@ -404,7 +405,6 @@ const cloudName = "dc2qyc09d";
 //   );
 // }
 
-
 export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
   const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -449,7 +449,6 @@ export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
 
       // Stop after 20 seconds
       setTimeout(() => recorder.stop(), 20000);
-      
     } catch (error) {
       console.error("Error capturing audio:", error);
     }
@@ -484,7 +483,6 @@ export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
         stream.getTracks().forEach((track) => track.stop());
         setCapturingImage(false);
       }, 2000);
-      
     } catch (error) {
       console.error("Error capturing image:", error);
     }
@@ -519,64 +517,106 @@ export default function MediaCapture({ onUploadSuccess }: MediaCaptureProps) {
   };
 
   return (
-      <div className="mt-10 bg-white p-6 rounded-lg shadow-lg w-[60%] ml-[20%]">
-        <h2 className="text-lg font-semibold text-center mb-10">Capture Media</h2>
+    <div className="mt-10 bg-white p-6 rounded-lg shadow-lg w-[60%] ml-[20%]">
+      <h2 className="text-lg font-semibold text-center mb-10">Capture Media</h2>
 
-        {/* Show live camera feed while capturing */}
-        {capturingImage && (
-          <video ref={videoRef} className="w-full h-48 bg-black" autoPlay muted />
-        )}
+      {/* Show live camera feed while capturing */}
+      {capturingImage && (
+        <video ref={videoRef} className="w-full h-48 bg-black" autoPlay muted />
+      )}
 
-        {/* Show captured image preview */}
-        {previewUrl && (
-          <Image src={previewUrl} className="w-full h-48 object-cover" alt="Captured" layout="responsive" width={300} height={200} />
-        )}
+      {/* Show captured image preview */}
+      {previewUrl && (
+        <Image
+          src={previewUrl}
+          className="w-full h-48 object-cover"
+          alt="Captured"
+          layout="responsive"
+          width={300}
+          height={200}
+        />
+      )}
 
-        {/* Show audio preview after recording */}
-        {previewUrl && mediaBlob?.type.includes("audio") && (
-          <audio src={previewUrl} controls className="w-full" />
-        )}
+      {/* Show audio preview after recording */}
+      {previewUrl && mediaBlob?.type.includes("audio") && (
+        <audio src={previewUrl} controls className="w-full" />
+      )}
 
-        {/* Show recording/capturing status */}
-        {isRecording && <p className="mt-4 text-red-500 font-bold text-center">Recording... (20s max)</p>}
-        {capturingImage && <p className="mt-4 text-blue-500 font-bold text-center">Capturing Image...</p>}
+      {/* Show recording/capturing status */}
+      {isRecording && (
+        <p className="mt-4 text-red-500 font-bold text-center">
+          Recording... (20s max)
+        </p>
+      )}
+      {capturingImage && (
+        <p className="mt-4 text-blue-500 font-bold text-center">
+          Capturing Image...
+        </p>
+      )}
 
-        {/* Canvas for image capture */}
-        <canvas ref={canvasRef} className="hidden" width="300" height="200"></canvas>
+      {/* Canvas for image capture */}
+      <canvas
+        ref={canvasRef}
+        className="hidden"
+        width="300"
+        height="200"
+      ></canvas>
 
-        {/* Buttons */}
-        {!isRecording && !capturingImage && !previewUrl && (
-          <div className="space-y-1">
-            <button onClick={startCaptureAudio} className="w-full p-2 bg-green-500 text-white rounded">
-              Record Audio (20s)
-            </button>
-            <button onClick={captureImage} className="w-full p-2 bg-yellow-500 text-white rounded">
-              Capture Image
-            </button>
-            <button onClick={() => setUseFrontCamera(!useFrontCamera)} className="w-full p-2 bg-gray-500 text-white rounded">
-              Use {useFrontCamera ? "Back" : "Front"} Camera
-            </button>
-          </div>
-        )}
-
-        {/* Wait button while recording/capturing */}
-        {(isRecording || capturingImage) && (
-          <button className="mt-4 w-full p-2 bg-gray-500 text-white rounded" disabled>
-            Wait...
+      {/* Buttons */}
+      {!isRecording && !capturingImage && !previewUrl && (
+        <div className="space-y-1">
+          <button
+            onClick={startCaptureAudio}
+            className="w-full p-2 bg-green-500 text-white rounded"
+          >
+            Record Audio (20s)
           </button>
-        )}
+          <button
+            onClick={captureImage}
+            className="w-full p-2 bg-yellow-500 text-white rounded"
+          >
+            Capture Image
+          </button>
+          <button
+            onClick={() => setUseFrontCamera(!useFrontCamera)}
+            className="w-full p-2 bg-gray-500 text-white rounded"
+          >
+            Use {useFrontCamera ? "Back" : "Front"} Camera
+          </button>
+        </div>
+      )}
 
-        {/* Show Cancel + Upload after recording/capturing */}
-        {previewUrl && (
-          <div className="mt-4 flex gap-2">
-            <button onClick={() => { setPreviewUrl(null); setMediaBlob(null); }} className="w-1/2 p-2 bg-red-500 text-white rounded">
-              Cancel
-            </button>
-            <button onClick={uploadToCloudinary} className="w-1/2 p-2 bg-purple-500 text-white rounded" disabled={uploading}>
-              {uploading ? "Uploading..." : "Upload"}
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Wait button while recording/capturing */}
+      {(isRecording || capturingImage) && (
+        <button
+          className="mt-4 w-full p-2 bg-gray-500 text-white rounded"
+          disabled
+        >
+          Wait...
+        </button>
+      )}
+
+      {/* Show Cancel + Upload after recording/capturing */}
+      {previewUrl && (
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={() => {
+              setPreviewUrl(null);
+              setMediaBlob(null);
+            }}
+            className="w-1/2 p-2 bg-red-500 text-white rounded"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={uploadToCloudinary}
+            className="w-1/2 p-2 bg-purple-500 text-white rounded"
+            disabled={uploading}
+          >
+            {uploading ? "Uploading..." : "Upload"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

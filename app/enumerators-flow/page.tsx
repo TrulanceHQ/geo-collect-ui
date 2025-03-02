@@ -229,7 +229,7 @@ export default function EnumeratorDashboard() {
           <Image
             src="/logo.png"
             alt="Company Logo"
-            width={120}
+            width={60}
             height={50}
             priority
           />

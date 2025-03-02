@@ -75,7 +75,7 @@ export default function SignInPage() {
           <Image
             src="/logo.png"
             alt="Company Logo"
-            width={80}
+            width={60}
             height={50}
             priority
           />
