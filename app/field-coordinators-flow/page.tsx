@@ -164,6 +164,7 @@ export default function FieldCoordinatorsDashboard() {
 
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [userId, setUserId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   // const [surveyData, setSurveyData] = useState([]);
 
   useEffect(() => {
@@ -191,6 +192,9 @@ export default function FieldCoordinatorsDashboard() {
   };
   // fetchTotalStates
   const handleCreateEnum = async () => {
+    if (submitting) return; // Prevent multiple submissions
+
+    setSubmitting(true); // Start submitting
     const creatorRole = "fieldCoordinator";
 
     try {
@@ -212,6 +216,8 @@ export default function FieldCoordinatorsDashboard() {
         setError("An unexpected error occurred.");
       }
       setSuccess("");
+    } finally {
+      setSubmitting(false); // Reset submitting state
     }
   };
 
@@ -428,11 +434,18 @@ export default function FieldCoordinatorsDashboard() {
                 >
                   Cancel
                 </button>
-                <button
+                {/* <button
                   className="bg-blue-600 text-white px-4 py-2 rounded"
                   onClick={handleCreateEnum}
                 >
                   Submit
+                </button> */}
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                  onClick={handleCreateEnum}
+                  disabled={submitting}
+                >
+                  {submitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>
