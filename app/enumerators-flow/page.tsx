@@ -319,9 +319,9 @@ export default function EnumeratorDashboard() {
           {/* Start Survey Section */}
           <div className="mt-8 bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
             <h2 className="text-xl font-semibold p-4">Start a New Survey</h2>
-            <p className="text-gray-600">
+            {/* <p className="text-gray-600">
               See all the data you&apos;ve gathered from your surveys.
-            </p>
+            </p> */}
             <button
               className="mt-4 bg-gray-700 text-white px-4 py-2 rounded flex items-center space-x-2"
               onClick={() => setIsSurveyOpen(true)}
