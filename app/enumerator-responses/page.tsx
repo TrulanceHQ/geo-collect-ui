@@ -37,13 +37,12 @@ const isMedia = (url: string): "image" | "audio" | "other" => {
   return "other";
 };
 
-
 export default function ResponsesPage() {
   const { responses } = useResponseContext();
   const [selectedResponse, setSelectedResponse] = useState<SurveyResponse | null>(null);
 
   return (
-    <div className="p-6 space-y-6 w-full">
+    <div className="p-6 space-y-6 w-full h-full overflow-y-auto">
       <button className="bg-blue-500 text-white px-4 py-2 rounded mb-4" onClick={() => window.history.back()}>
         Back
       </button>
@@ -67,8 +66,8 @@ export default function ResponsesPage() {
               >
                 <td className="border p-2">{index + 1}</td>
                 <td className="border p-2">{survey.location}</td>
-                <td className="border p-2">{new Date(survey.submittedAt).toLocaleString()}</td>
-                <td className="border p-2">{new Date(survey.startTime).toLocaleString() || "-" }</td>
+                <td className="border p-2">{new Date(survey.startTime).toLocaleString()}</td>
+                <td className="border p-2">{new Date(survey.submittedAt).toLocaleString() || "-" }</td>
               </tr>
             ))}
           </tbody>
@@ -77,7 +76,7 @@ export default function ResponsesPage() {
 
       {/* MODAL */}
       {selectedResponse && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-w-3xl relative">
             <button className="absolute top-2 right-2 text-gray-600 hover:text-gray-900" onClick={() => setSelectedResponse(null)}>
               ✖
