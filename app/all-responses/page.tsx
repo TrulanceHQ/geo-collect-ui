@@ -63,134 +63,157 @@ const SurveyResponsesTable: React.FC = () => {
   });
 
   return (
-    <table
-      style={{
-        width: "100%",
-        tableLayout: "auto",
-        border: "2px solid black",
-        borderCollapse: "collapse",
-      }}
-    >
-      <thead>
-        <tr>
-          {/* Static Columns */}
-          <th style={tableCellStyle} rowSpan={2}>
-            Survey Title
-          </th>
-          <th style={tableCellStyle} rowSpan={2}>
-            Enumerator
-          </th>
-          <th style={tableCellStyle} rowSpan={2}>
-            Field Coordinator
-          </th>
-          <th style={tableCellStyle} rowSpan={2}>
-            State
-          </th>
-
-          {/* Dynamic Columns */}
-          {allQuestions.map((q, index) => {
-            // If a subquestion exists, do not use rowSpan here.
-            if (q.subquestion) {
-              return (
-                <th key={index} style={tableCellStyle}>
-                  {q.question}
-                </th>
-              );
-            } else {
-              // For standard questions (no subquestion) use rowSpan to cover both header rows.
-              return (
-                <th key={index} style={tableCellStyle} rowSpan={2}>
-                  {q.question}
-                </th>
-              );
-            }
-          })}
-
-          {/* More Static Columns */}
-          <th style={tableCellStyle} rowSpan={2}>
-            Location
-          </th>
-          <th style={tableCellStyle} rowSpan={2}>
-            Media URL
-          </th>
-          <th style={tableCellStyle} rowSpan={2}>
-            Start Time
-          </th>
-          <th style={tableCellStyle} rowSpan={2}>
-            Submitted At
-          </th>
-        </tr>
-        <tr>
-          {/* Render second header row for columns that have a subquestion */}
-          {allQuestions.map((q, index) =>
-            q.subquestion ? (
-              <th key={index} style={tableCellStyle}>
-                {q.subquestion}
+    <>
+      <style jsx>{`
+        .sticky-header {
+          position: sticky;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+        }
+      `}</style>
+      <div className="table-responsive">
+        <table className="table table-bordered">
+          <thead className="thead-light">
+            {/* <table
+        style={{
+          width: "100%",
+          tableLayout: "auto",
+          border: "2px solid black",
+          borderCollapse: "collapse",
+        }}
+      >
+        <thead> */}
+            <tr>
+              {/* Static Columns */}
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Survey Title
               </th>
-            ) : null
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {surveyResponses.map((survey) => (
-          <tr key={survey._id}>
-            <td style={tableCellStyle}>
-              {survey.surveyId ? survey.surveyId.title : "N/A"}
-            </td>
-            <td style={tableCellStyle}>
-              {survey.enumeratorId
-                ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
-                : "N/A"}
-            </td>
-            <td style={tableCellStyle}>
-              {survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
-                ? `${survey.enumeratorId.fieldCoordinatorId.firstName} ${survey.enumeratorId.fieldCoordinatorId.lastName}`
-                : "N/A"}
-            </td>
-            <td style={tableCellStyle}>
-              {survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
-                ? survey.enumeratorId.fieldCoordinatorId.selectedState
-                : "N/A"}
-            </td>
-            {/* Render dynamic question responses */}
-            {allQuestions.map((q, index) => {
-              const foundResponse = survey.responses.find(
-                (res) =>
-                  res.question === q.question &&
-                  (res.subquestion || "") === q.subquestion
-              );
-              let answerRendered = "N/A";
-              if (foundResponse) {
-                answerRendered = Array.isArray(foundResponse.answer)
-                  ? foundResponse.answer.join(", ")
-                  : foundResponse.answer;
-              }
-              return (
-                <td key={index} style={tableCellStyle}>
-                  {answerRendered}
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Enumerator
+              </th>
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Field Coordinator
+              </th>
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                State
+              </th>
+
+              {/* Dynamic Columns */}
+              {allQuestions.map((q, index) => {
+                // If a subquestion exists, do not use rowSpan here.
+                if (q.subquestion) {
+                  return (
+                    <th
+                      key={index}
+                      style={tableCellStyle}
+                      className="sticky-header"
+                    >
+                      {q.question}
+                    </th>
+                  );
+                } else {
+                  // For standard questions (no subquestion) use rowSpan to cover both header rows.
+                  return (
+                    <th
+                      key={index}
+                      style={tableCellStyle}
+                      className="sticky-header"
+                      rowSpan={2}
+                    >
+                      {q.question}
+                    </th>
+                  );
+                }
+              })}
+
+              {/* More Static Columns */}
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Location
+              </th>
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Media URL
+              </th>
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Start Time
+              </th>
+              <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+                Submitted At
+              </th>
+            </tr>
+            <tr>
+              {/* Render second header row for columns that have a subquestion */}
+              {allQuestions.map((q, index) =>
+                q.subquestion ? (
+                  <th key={index} style={tableCellStyle}>
+                    {q.subquestion}
+                  </th>
+                ) : null
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {surveyResponses.map((survey) => (
+              <tr key={survey._id}>
+                <td style={tableCellStyle}>
+                  {survey.surveyId ? survey.surveyId.title : "N/A"}
                 </td>
-              );
-            })}
-            <td style={tableCellStyle}>{survey.location}</td>
-            <td style={tableCellStyle}>
-              <a
-                href={survey.mediaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View Media
-              </a>
-            </td>
-            <td style={tableCellStyle}>
-              {new Date(survey.startTime).toLocaleString()}
-            </td>
-            <td style={tableCellStyle}>
-              {new Date(survey.submittedAt).toLocaleString()}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                <td style={tableCellStyle}>
+                  {survey.enumeratorId
+                    ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
+                    : "N/A"}
+                </td>
+                <td style={tableCellStyle}>
+                  {survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+                    ? `${survey.enumeratorId.fieldCoordinatorId.firstName} ${survey.enumeratorId.fieldCoordinatorId.lastName}`
+                    : "N/A"}
+                </td>
+                <td style={tableCellStyle}>
+                  {survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+                    ? survey.enumeratorId.fieldCoordinatorId.selectedState
+                    : "N/A"}
+                </td>
+                {/* Render dynamic question responses */}
+                {allQuestions.map((q, index) => {
+                  const foundResponse = survey.responses.find(
+                    (res) =>
+                      res.question === q.question &&
+                      (res.subquestion || "") === q.subquestion
+                  );
+                  let answerRendered = "N/A";
+                  if (foundResponse) {
+                    answerRendered = Array.isArray(foundResponse.answer)
+                      ? foundResponse.answer.join(", ")
+                      : foundResponse.answer;
+                  }
+                  return (
+                    <td key={index} style={tableCellStyle}>
+                      {answerRendered}
+                    </td>
+                  );
+                })}
+                <td style={tableCellStyle}>{survey.location}</td>
+                <td style={tableCellStyle}>
+                  <a
+                    href={survey.mediaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Media
+                  </a>
+                </td>
+                <td style={tableCellStyle}>
+                  {new Date(survey.startTime).toLocaleString()}
+                </td>
+                <td style={tableCellStyle}>
+                  {new Date(survey.submittedAt).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 
