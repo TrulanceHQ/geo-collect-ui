@@ -1040,6 +1040,19 @@ export default function FieldCoordinatorsDashboard() {
                 <strong>Location: </strong>
                 {selectedSurvey.location}
               </p>
+              {selectedSurvey.mediaUrl && (
+                <p>
+                  <strong>Media: </strong>
+                  <a
+                    href={selectedSurvey.mediaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    View Media
+                  </a>
+                </p>
+              )}
               <div className="mt-4">
                 <h3 className="text-lg font-semibold">Responses</h3>
                 {selectedSurvey.responses.map((response, index) => (
