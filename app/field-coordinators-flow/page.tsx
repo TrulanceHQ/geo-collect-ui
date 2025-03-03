@@ -975,51 +975,53 @@ export default function FieldCoordinatorsDashboard() {
           </div>
         )}
 
-        {/* {isDataVisible && (
-          <div className="mt-6 bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Collected Survey Data
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full md:w-max table-auto bg-white border border-gray-300">
-                <thead className="bg-gray-100 border-b">
-                  <tr>
-                    <th className="p-3 text-left border whitespace-normal break-words">
-                      Enumerator
-                    </th>
-                    <th className="p-3 text-left border whitespace-normal break-words">
-                      Start Time
-                    </th>
-                    <th className="p-3 text-left border whitespace-normal break-words">
-                      Submission Time
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {surveyData.map((data) => (
-                    <tr
-                      key={data._id}
-                      className="border-b hover:bg-gray-50 cursor-pointer"
-                      onClick={() => setSelectedSurvey(data)}
-                    >
-                      <td className="p-3 border">{`${data.enumeratorId.firstName} ${data.enumeratorId.lastName}`}</td>
-                      <td className="p-3 border whitespace-normal break-words">
-                        {new Date(data.startTime).toLocaleString()}
-                      </td>
-                      <td className="p-3 border whitespace-normal break-words">
-                        {new Date(data.submittedAt).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Detail Modal */}
+        {/* {selectedSurvey && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Survey Details</h2>
+              <p>
+                <strong>Enumerator: </strong>
+                {`${selectedSurvey.enumeratorId.firstName} ${selectedSurvey.enumeratorId.lastName}`}
+              </p>
+
+              <p>
+                <strong>Start Time: </strong>
+                {new Date(selectedSurvey.startTime).toLocaleString()}
+              </p>
+              <p>
+                <strong>Submission Time: </strong>
+                {new Date(selectedSurvey.submittedAt).toLocaleString()}
+              </p>
+              <p>
+                <strong>Location: </strong>
+                {selectedSurvey.location}
+              </p>
+              <div className="mt-4">
+                <h3 className="text-lg font-semibold">Responses</h3>
+                {selectedSurvey.responses.map((response, index) => (
+                  <div key={index} className="border p-2 mt-2">
+                    <p>
+                      <strong>{response.question}: </strong>
+                      {response.answer}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <button
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={() => setSelectedSurvey(null)}
+              >
+                Close
+              </button>
             </div>
           </div>
         )} */}
+
         {/* Detail Modal */}
         {selectedSurvey && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">Survey Details</h2>
               <p>
                 <strong>Enumerator: </strong>
