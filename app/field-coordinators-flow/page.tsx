@@ -519,8 +519,10 @@ interface SurveyData {
     lastName: string;
     fieldCoordinatorId: { selectedState: string };
   };
+
   responses: {
     question: string;
+    subquestion?: string; // New optional field for likert subquestions
     answer: string | string[];
   }[];
   location: string;
@@ -1058,7 +1060,17 @@ export default function FieldCoordinatorsDashboard() {
                 {selectedSurvey.responses.map((response, index) => (
                   <div key={index} className="border p-2 mt-2">
                     <p>
-                      <strong>{response.question}: </strong>
+                      <strong>Question: </strong>
+                      {response.question}
+                    </p>
+                    {response.subquestion && (
+                      <p>
+                        <strong>Subquestion: </strong>
+                        {response.subquestion}
+                      </p>
+                    )}
+                    <p>
+                      <strong>Answer: </strong>
                       {response.answer}
                     </p>
                   </div>
