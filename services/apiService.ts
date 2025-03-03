@@ -631,6 +631,7 @@ export const fetchAllSurveyResponsesByAdmin = async () => {
 };
 
 //fetch data responses for field coord by enumerator
+//fetch data responses for field coord by enumerator
 
 export const getSurveyResponsesByFieldCoordinator = async (
   fieldCoordinatorId: string
@@ -642,7 +643,7 @@ export const getSurveyResponsesByFieldCoordinator = async (
 
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/api/v1/enumerator/survey-responses/${fieldCoordinatorId}`,
+      `${API_BASE_URL}/enumerator/survey-responses/${fieldCoordinatorId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
