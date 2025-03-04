@@ -1,8 +1,8 @@
 //new
 "use client";
 
-// import { saveAs } from "file-saver";
-// import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
 // import Papa from "papaparse";
 
 import React, { useEffect, useState } from "react";
@@ -46,6 +46,80 @@ const SurveyResponsesTable: React.FC = () => {
     };
     fetchSurveyResponses();
   }, []);
+
+  const exportToExcel = () => {
+    const data = surveyResponses.map((survey) => ({
+      "Survey Title": survey.surveyId ? survey.surveyId.title : "N/A",
+      Enumerator: survey.enumeratorId
+        ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
+        : "N/A",
+      "Field Coordinator":
+        survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+          ? `${survey.enumeratorId.fieldCoordinatorId.firstName} ${survey.enumeratorId.fieldCoordinatorId.lastName}`
+          : "N/A",
+      State:
+        survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+          ? survey.enumeratorId.fieldCoordinatorId.selectedState
+          : "N/A",
+      ...Object.fromEntries(
+        survey.responses.map((res, index) => [
+          `${res.question}${res.subquestion ? " - " + res.subquestion : ""}`,
+          Array.isArray(res.answer) ? res.answer.join(", ") : res.answer,
+        ])
+      ),
+      Location: survey.location,
+      "Media URL": survey.mediaUrl,
+      "Start Time": new Date(survey.startTime).toLocaleString(),
+      "Submitted At": new Date(survey.submittedAt).toLocaleString(),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Survey Responses");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, "SurveyResponses.xlsx");
+  };
+
+  // const exportToExcel = () => {
+  //   const data = surveyResponses.map((survey) => ({
+  //     "Survey Title": survey.surveyId ? survey.surveyId.title : "N/A",
+  //     Enumerator: survey.enumeratorId
+  //       ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
+  //       : "N/A",
+  //     "Field Coordinator":
+  //       survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+  //         ? `${survey.enumeratorId.fieldCoordinatorId.firstName} ${survey.enumeratorId.fieldCoordinatorId.lastName}`
+  //         : "N/A",
+  //     State:
+  //       survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+  //         ? survey.enumeratorId.fieldCoordinatorId.selectedState
+  //         : "N/A",
+  //     ...Object.fromEntries(
+  //       survey.responses.map((res, index) => [
+  //         `Question ${index + 1}`,
+  //         res.answer.toString(),
+  //       ])
+  //     ),
+  //     Location: survey.location,
+  //     "Media URL": survey.mediaUrl,
+  //     "Start Time": new Date(survey.startTime).toLocaleString(),
+  //     "Submitted At": new Date(survey.submittedAt).toLocaleString(),
+  //   }));
+
+  //   const worksheet = XLSX.utils.json_to_sheet(data);
+  //   const workbook = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Survey Responses");
+  //   const excelBuffer = XLSX.write(workbook, {
+  //     bookType: "xlsx",
+  //     type: "array",
+  //   });
+  //   const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  //   saveAs(blob, "SurveyResponses.xlsx");
+  // };
 
   // Create a union of all dynamic columns using a composite key:
   // For standard questions, subquestion will be an empty string.
@@ -212,6 +286,13 @@ const SurveyResponsesTable: React.FC = () => {
             ))}
           </tbody>
         </table>
+
+        <button
+          className="bg-gray-800 text-white px-4 py-4 my-4 rounded "
+          onClick={exportToExcel}
+        >
+          Download as Excel
+        </button>
       </div>
     </>
   );
