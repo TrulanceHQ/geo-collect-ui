@@ -77,7 +77,6 @@ export default function FieldCoordinatorsDashboard() {
       try {
         const decodedToken = jwtDecode<{ sub: string }>(token); // Define the expected type
         const userId = decodedToken.sub;
-        console.log("Decoded Token:", decodedToken);
 
         const data = await fetchUserData(userId); // Now userId is typed as string
         setFieldCoordData({
@@ -184,8 +183,7 @@ export default function FieldCoordinatorsDashboard() {
 
     try {
       const data = await createEnumerators(emailAddress, role, creatorRole);
-      console.log("User created successfully:", data); // Log the success
-      // setSuccess("User created successfully!");
+
       setIsFormOpen(false); // Close the form/modal after successful creation
       setError(""); // Clear previous errors
     } catch (error: unknown) {

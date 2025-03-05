@@ -45,7 +45,6 @@ export default function DashboardPage() {
       try {
         const decodedToken = jwtDecode<{ sub: string }>(token); // Define the expected type
         const userId = decodedToken.sub;
-        console.log("Decoded Token:", decodedToken);
 
         const data = await fetchUserData(userId); // Now userId is typed as string
         setAdminData({
@@ -190,8 +189,7 @@ export default function DashboardPage() {
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
-      // console.log("States created successfully:", data);
-      // setStateSuccess("States created successfully!");
+
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
       setError("");
