@@ -98,7 +98,7 @@ const SurveyResponsesTable: React.FC = () => {
 
   return (
     <>
-      <style jsx>{`
+      {/* <style jsx>{`
         .sticky-header {
           position: sticky;
           top: 0;
@@ -107,7 +107,32 @@ const SurveyResponsesTable: React.FC = () => {
         }
         .table th,
         .table td {
-          font-size: 10px; /* Adjust data font size */
+          font-size: 10px; 
+        }
+      `}</style> */}
+      <style jsx>{`
+        .sticky-header {
+          position: sticky;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+          font-size: 16px; /* Adjust header font size */
+        }
+
+        .table th,
+        .table td {
+          min-width: 15rem; /* Prevent content from narrowing too much */
+          font-size: 14px; /* Adjust data font size */
+          word-wrap: break-word; /* Ensure long text wraps */
+        }
+
+        .table {
+          table-layout: auto;
+          width: 100%; /* Allow table to span the full container */
+        }
+
+        .table-responsive {
+          overflow-x: auto; /* Add horizontal scrolling for overflow */
         }
       `}</style>
       <div className="table-responsive">
