@@ -367,6 +367,7 @@ import * as XLSX from "xlsx";
 // Data Types
 // ──────────────────────────────────────────────
 
+// A survey response, as fetched from the API.
 interface SurveyData {
   _id: string;
   surveyId: { title: string; subtitle: string };
@@ -379,13 +380,12 @@ interface SurveyData {
       selectedState: string;
     };
   };
-  // The responses array might have duplicate entries.
-  // We will preprocess each survey so that each unique
-  // (question, subquestion) pair appears only once with merged answers.
+  // Note: responses array may include duplicate entries
+  // which we will merge.
   responses: {
     question: string;
     subquestion?: string;
-    // After merging, we will always store this as an array of answers.
+    // Initially a string or array; after preprocessing, we always store an array.
     answer: string | string[];
   }[];
   location: string;
@@ -394,11 +394,12 @@ interface SurveyData {
   submittedAt: string;
 }
 
-// Type for each dynamic column header in the table.
+// A dynamic header (i.e. a column) that will be rendered for each unique
+// (question, subquestion) combination.
 interface DynamicHeader {
-  key: string; // A unique key: normalized(question) + "|||" + normalized(subquestion)
-  question: string; // Display text for the question
-  subquestion: string; // Display text for the subquestion (if any)
+  key: string; // computed as normalized(question) + "|||" + normalized(subquestion)
+  question: string; // The display text for the question (trimmed, original casing)
+  subquestion: string; // The display text for the subquestion (if any); or "" if none.
 }
 
 // ──────────────────────────────────────────────
@@ -414,49 +415,51 @@ const tableCellStyle: React.CSSProperties = {
 // Helper Functions
 // ──────────────────────────────────────────────
 
-// Normalize a text by trimming and converting to lowercase.
+// Normalize text by trimming and converting it to lowercase.
 const normalizeText = (text: string): string => text.trim().toLowerCase();
 
-// Preprocess a single survey's responses so that duplicate entries (based on question and subquestion)
-// are merged into one. This function returns a new SurveyData with a cleaned responses array.
+// Preprocess a single survey’s responses so that duplicate (question, subquestion)
+// entries are merged. (Answers are merged into an array with duplicates removed.)
 const preprocessSurveyResponsesForSurvey = (survey: SurveyData): SurveyData => {
-  // Create a map keyed by "normalized(question)|||normalized(subquestion)"
+  // Use a Map keyed by "qNorm|||sNorm".
   const mergedMap = new Map<
     string,
     { question: string; subquestion: string; answers: string[] }
   >();
 
   survey.responses.forEach((r) => {
-    // Skip empty questions.
-    if (!r.question || r.question.trim() === "") return;
+    if (!r.question || r.question.trim() === "") return; // skip empty questions
 
-    const q = r.question.trim();
-    const s =
+    const qDisp = r.question.trim();
+    const sDisp =
       r.subquestion && r.subquestion.trim() !== "" ? r.subquestion.trim() : "";
-    const key = `${normalizeText(q)}|||${normalizeText(s)}`;
+    const key = `${normalizeText(qDisp)}|||${normalizeText(sDisp)}`;
 
-    // Get answers as an array (even if already an array).
+    // Convert answer to an array.
     const currentAnswers = Array.isArray(r.answer) ? r.answer : [r.answer];
 
     if (mergedMap.has(key)) {
-      // Merge answers; remove duplicates.
       const prev = mergedMap.get(key)!;
       const merged = Array.from(new Set([...prev.answers, ...currentAnswers]));
-      mergedMap.set(key, { question: q, subquestion: s, answers: merged });
+      mergedMap.set(key, {
+        question: qDisp,
+        subquestion: sDisp,
+        answers: merged,
+      });
     } else {
       mergedMap.set(key, {
-        question: q,
-        subquestion: s,
+        question: qDisp,
+        subquestion: sDisp,
         answers: Array.from(new Set(currentAnswers)),
       });
     }
   });
 
-  // Replace the survey's responses with the merged responses.
+  // Replace responses with merged entries.
   survey.responses = Array.from(mergedMap.values()).map((entry) => ({
     question: entry.question,
     subquestion: entry.subquestion,
-    answer: entry.answers, // answer is now an array
+    answer: entry.answers, // now always an array
   }));
 
   return survey;
@@ -467,14 +470,13 @@ const preprocessSurveyResponsesForSurvey = (survey: SurveyData): SurveyData => {
 // ──────────────────────────────────────────────
 
 const SurveyResponsesTable: React.FC = () => {
-  // Raw survey responses are fetched from the API.
+  // Raw data from the API.
   const [surveyResponses, setSurveyResponses] = useState<SurveyData[]>([]);
 
   useEffect(() => {
     async function fetchData() {
       const responses = await fetchAllSurveyResponsesByAdmin();
-
-      // Preprocess every survey to merge duplicate question/subquestion responses.
+      // Preprocess each survey to merge duplicate question entries.
       const processed = responses.map(preprocessSurveyResponsesForSurvey);
       setSurveyResponses(processed);
     }
@@ -482,23 +484,26 @@ const SurveyResponsesTable: React.FC = () => {
   }, []);
 
   /*
-    Build the union of dynamic headers from the preprocessed survey responses.
-    Now each survey's responses is unique per (question, subquestion) pair.
-    We create a header for each unique normalized key.
+    Build the union of all dynamic headers from the preprocessed survey responses.
+    Each header is added only once based on its normalized key.
   */
   const unionHeaders: DynamicHeader[] = useMemo(() => {
     const headerMap = new Map<string, DynamicHeader>();
     surveyResponses.forEach((survey) => {
       survey.responses.forEach((r) => {
         if (r.question && r.question.trim() !== "") {
-          const q = r.question.trim();
-          const s =
+          const qDisp = r.question.trim();
+          const sDisp =
             r.subquestion && r.subquestion.trim() !== ""
               ? r.subquestion.trim()
               : "";
-          const key = `${normalizeText(q)}|||${normalizeText(s)}`;
+          const key = `${normalizeText(qDisp)}|||${normalizeText(sDisp)}`;
           if (!headerMap.has(key)) {
-            headerMap.set(key, { key, question: q, subquestion: s });
+            headerMap.set(key, {
+              key,
+              question: qDisp,
+              subquestion: sDisp,
+            });
           }
         }
       });
@@ -507,9 +512,37 @@ const SurveyResponsesTable: React.FC = () => {
   }, [surveyResponses]);
 
   /*
-    Export to Excel uses the preprocessed data.
-    For each survey row, for every dynamic header, we look for a matching entry.
-    Since the responses are already merged, there should be at most one match.
+    Filter out headers (dynamic columns) for which no survey provided any answer.
+    We check each header against every survey’s responses.
+    If for a given header key none of the surveys have a nonempty answer, then we
+    remove that header entirely.
+  */
+  const filteredHeaders: DynamicHeader[] = useMemo(() => {
+    return unionHeaders.filter((header) =>
+      surveyResponses.some((survey) => {
+        const match = survey.responses.find((r) => {
+          const currentKey = `${normalizeText(
+            r.question.trim()
+          )}|||${normalizeText(r.subquestion ? r.subquestion.trim() : "")}`;
+          return currentKey === header.key;
+        });
+        if (match) {
+          // If the answer (or answers) is nonempty, keep this header.
+          if (Array.isArray(match.answer)) {
+            return match.answer.some((ans) => ans && ans.trim() !== "");
+          } else {
+            return match.answer && match.answer.trim() !== "";
+          }
+        }
+        return false;
+      })
+    );
+  }, [unionHeaders, surveyResponses]);
+
+  /*
+    Exporting to Excel uses the same filtered headers.
+    For each survey row, for each header,
+    we look for a matching response (which is already merged). If not found, that column is skipped.
   */
   const exportToExcel = () => {
     const data = surveyResponses.map((survey) => {
@@ -528,23 +561,23 @@ const SurveyResponsesTable: React.FC = () => {
             : "N/A",
       };
 
-      unionHeaders.forEach((header) => {
-        // Look for a matching response entry using the normalized key.
+      filteredHeaders.forEach((header) => {
+        // Look up the matching response by comparing normalized keys.
         const response = survey.responses.find((r) => {
-          const q = r.question.trim();
-          const s =
+          const qDisp = r.question.trim();
+          const sDisp =
             r.subquestion && r.subquestion.trim() !== ""
               ? r.subquestion.trim()
               : "";
-          const currentKey = `${normalizeText(q)}|||${normalizeText(s)}`;
-          return currentKey === header.key;
+          const currKey = `${normalizeText(qDisp)}|||${normalizeText(sDisp)}`;
+          return currKey === header.key;
         });
         row[
           `${header.question}${
             header.subquestion ? " - " + header.subquestion : ""
           }`
         ] =
-          response && response.answer && Array.isArray(response.answer)
+          response && Array.isArray(response.answer)
             ? response.answer.join(", ")
             : "N/A";
       });
@@ -594,7 +627,7 @@ const SurveyResponsesTable: React.FC = () => {
         <table className="table table-bordered">
           <thead className="thead-light">
             <tr>
-              {/* Static headers */}
+              {/* Static Headers */}
               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
                 Survey Title
               </th>
@@ -607,8 +640,8 @@ const SurveyResponsesTable: React.FC = () => {
               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
                 State
               </th>
-              {/* Dynamic headers */}
-              {unionHeaders.map((header) => {
+              {/* Dynamic Headers */}
+              {filteredHeaders.map((header) => {
                 if (header.subquestion !== "") {
                   return (
                     <th
@@ -646,8 +679,8 @@ const SurveyResponsesTable: React.FC = () => {
               </th>
             </tr>
             <tr>
-              {/* Second header row only for dynamic headers with a subquestion */}
-              {unionHeaders.map((header) =>
+              {/* Second header row: only for headers with a subquestion */}
+              {filteredHeaders.map((header) =>
                 header.subquestion !== "" ? (
                   <th key={header.key} style={tableCellStyle}>
                     {header.subquestion}
@@ -659,7 +692,7 @@ const SurveyResponsesTable: React.FC = () => {
           <tbody>
             {surveyResponses.map((survey) => (
               <tr key={survey._id}>
-                {/* Static cells */}
+                {/* Static Cells */}
                 <td style={tableCellStyle}>
                   {survey.surveyId ? survey.surveyId.title : "N/A"}
                 </td>
@@ -678,8 +711,8 @@ const SurveyResponsesTable: React.FC = () => {
                     ? survey.enumeratorId.fieldCoordinatorId.selectedState
                     : "N/A"}
                 </td>
-                {/* Dynamic cells */}
-                {unionHeaders.map((header) => {
+                {/* Dynamic Cells */}
+                {filteredHeaders.map((header) => {
                   const response = survey.responses.find((r) => {
                     const q = r.question.trim();
                     const s =
@@ -729,3 +762,377 @@ const SurveyResponsesTable: React.FC = () => {
 };
 
 export default SurveyResponsesTable;
+
+// "use client";
+
+// import React, { useEffect, useMemo, useState } from "react";
+// import { fetchAllSurveyResponsesByAdmin } from "@/services/apiService";
+// import { saveAs } from "file-saver";
+// import * as XLSX from "xlsx";
+
+// // ──────────────────────────────────────────────
+// // Data Types
+// // ──────────────────────────────────────────────
+
+// interface SurveyData {
+//   _id: string;
+//   surveyId: { title: string; subtitle: string };
+//   enumeratorId: {
+//     firstName: string;
+//     lastName: string;
+//     fieldCoordinatorId: {
+//       firstName: string;
+//       lastName: string;
+//       selectedState: string;
+//     };
+//   };
+//   // The responses array might have duplicate entries.
+//   // We will preprocess each survey so that each unique
+//   // (question, subquestion) pair appears only once with merged answers.
+//   responses: {
+//     question: string;
+//     subquestion?: string;
+//     // After merging, we will always store this as an array of answers.
+//     answer: string | string[];
+//   }[];
+//   location: string;
+//   mediaUrl: string;
+//   startTime: string;
+//   submittedAt: string;
+// }
+
+// // Type for each dynamic column header in the table.
+// interface DynamicHeader {
+//   key: string; // A unique key: normalized(question) + "|||" + normalized(subquestion)
+//   question: string; // Display text for the question
+//   subquestion: string; // Display text for the subquestion (if any)
+// }
+
+// // ──────────────────────────────────────────────
+// // CSS for Table Cells
+// // ──────────────────────────────────────────────
+
+// const tableCellStyle: React.CSSProperties = {
+//   border: "1px solid black",
+//   padding: "10px",
+// };
+
+// // ──────────────────────────────────────────────
+// // Helper Functions
+// // ──────────────────────────────────────────────
+
+// // Normalize a text by trimming and converting to lowercase.
+// const normalizeText = (text: string): string => text.trim().toLowerCase();
+
+// // Preprocess a single survey's responses so that duplicate entries (based on question and subquestion)
+// // are merged into one. This function returns a new SurveyData with a cleaned responses array.
+// const preprocessSurveyResponsesForSurvey = (survey: SurveyData): SurveyData => {
+//   // Create a map keyed by "normalized(question)|||normalized(subquestion)"
+//   const mergedMap = new Map<
+//     string,
+//     { question: string; subquestion: string; answers: string[] }
+//   >();
+
+//   survey.responses.forEach((r) => {
+//     // Skip empty questions.
+//     if (!r.question || r.question.trim() === "") return;
+
+//     const q = r.question.trim();
+//     const s =
+//       r.subquestion && r.subquestion.trim() !== "" ? r.subquestion.trim() : "";
+//     const key = `${normalizeText(q)}|||${normalizeText(s)}`;
+
+//     // Get answers as an array (even if already an array).
+//     const currentAnswers = Array.isArray(r.answer) ? r.answer : [r.answer];
+
+//     if (mergedMap.has(key)) {
+//       // Merge answers; remove duplicates.
+//       const prev = mergedMap.get(key)!;
+//       const merged = Array.from(new Set([...prev.answers, ...currentAnswers]));
+//       mergedMap.set(key, { question: q, subquestion: s, answers: merged });
+//     } else {
+//       mergedMap.set(key, {
+//         question: q,
+//         subquestion: s,
+//         answers: Array.from(new Set(currentAnswers)),
+//       });
+//     }
+//   });
+
+//   // Replace the survey's responses with the merged responses.
+//   survey.responses = Array.from(mergedMap.values()).map((entry) => ({
+//     question: entry.question,
+//     subquestion: entry.subquestion,
+//     answer: entry.answers, // answer is now an array
+//   }));
+
+//   return survey;
+// };
+
+// // ──────────────────────────────────────────────
+// // Main Component
+// // ──────────────────────────────────────────────
+
+// const SurveyResponsesTable: React.FC = () => {
+//   // Raw survey responses are fetched from the API.
+//   const [surveyResponses, setSurveyResponses] = useState<SurveyData[]>([]);
+
+//   useEffect(() => {
+//     async function fetchData() {
+//       const responses = await fetchAllSurveyResponsesByAdmin();
+
+//       // Preprocess every survey to merge duplicate question/subquestion responses.
+//       const processed = responses.map(preprocessSurveyResponsesForSurvey);
+//       setSurveyResponses(processed);
+//     }
+//     fetchData();
+//   }, []);
+
+//   /*
+//     Build the union of dynamic headers from the preprocessed survey responses.
+//     Now each survey's responses is unique per (question, subquestion) pair.
+//     We create a header for each unique normalized key.
+//   */
+//   const unionHeaders: DynamicHeader[] = useMemo(() => {
+//     const headerMap = new Map<string, DynamicHeader>();
+//     surveyResponses.forEach((survey) => {
+//       survey.responses.forEach((r) => {
+//         if (r.question && r.question.trim() !== "") {
+//           const q = r.question.trim();
+//           const s =
+//             r.subquestion && r.subquestion.trim() !== ""
+//               ? r.subquestion.trim()
+//               : "";
+//           const key = `${normalizeText(q)}|||${normalizeText(s)}`;
+//           if (!headerMap.has(key)) {
+//             headerMap.set(key, { key, question: q, subquestion: s });
+//           }
+//         }
+//       });
+//     });
+//     return Array.from(headerMap.values());
+//   }, [surveyResponses]);
+
+//   /*
+//     Export to Excel uses the preprocessed data.
+//     For each survey row, for every dynamic header, we look for a matching entry.
+//     Since the responses are already merged, there should be at most one match.
+//   */
+//   const exportToExcel = () => {
+//     const data = surveyResponses.map((survey) => {
+//       const row: any = {
+//         "Survey Title": survey.surveyId ? survey.surveyId.title : "N/A",
+//         Enumerator: survey.enumeratorId
+//           ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
+//           : "N/A",
+//         "Field Coordinator":
+//           survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+//             ? `${survey.enumeratorId.fieldCoordinatorId.firstName} ${survey.enumeratorId.fieldCoordinatorId.lastName}`
+//             : "N/A",
+//         State:
+//           survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+//             ? survey.enumeratorId.fieldCoordinatorId.selectedState
+//             : "N/A",
+//       };
+
+//       unionHeaders.forEach((header) => {
+//         // Look for a matching response entry using the normalized key.
+//         const response = survey.responses.find((r) => {
+//           const q = r.question.trim();
+//           const s =
+//             r.subquestion && r.subquestion.trim() !== ""
+//               ? r.subquestion.trim()
+//               : "";
+//           const currentKey = `${normalizeText(q)}|||${normalizeText(s)}`;
+//           return currentKey === header.key;
+//         });
+//         row[
+//           `${header.question}${
+//             header.subquestion ? " - " + header.subquestion : ""
+//           }`
+//         ] =
+//           response && response.answer && Array.isArray(response.answer)
+//             ? response.answer.join(", ")
+//             : "N/A";
+//       });
+//       row["Location"] = survey.location;
+//       row["Media URL"] = survey.mediaUrl;
+//       row["Start Time"] = new Date(survey.startTime).toLocaleString();
+//       row["Submitted At"] = new Date(survey.submittedAt).toLocaleString();
+//       return row;
+//     });
+
+//     const worksheet = XLSX.utils.json_to_sheet(data);
+//     const workbook = XLSX.utils.book_new();
+//     XLSX.utils.book_append_sheet(workbook, worksheet, "Survey Responses");
+//     const excelBuffer = XLSX.write(workbook, {
+//       bookType: "xlsx",
+//       type: "array",
+//     });
+//     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+//     saveAs(blob, "SurveyResponses.xlsx");
+//   };
+
+//   return (
+//     <>
+//       <style jsx>{`
+//         .sticky-header {
+//           position: sticky;
+//           top: 0;
+//           background-color: white;
+//           z-index: 1;
+//           font-size: 16px;
+//         }
+//         .table th,
+//         .table td {
+//           min-width: 150px;
+//           font-size: 14px;
+//           word-wrap: break-word;
+//         }
+//         .table {
+//           table-layout: auto;
+//           width: 100%;
+//         }
+//         .table-responsive {
+//           overflow-x: auto;
+//         }
+//       `}</style>
+//       <div className="table-responsive">
+//         <table className="table table-bordered">
+//           <thead className="thead-light">
+//             <tr>
+//               {/* Static headers */}
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Survey Title
+//               </th>
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Enumerator
+//               </th>
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Field Coordinator
+//               </th>
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 State
+//               </th>
+//               {/* Dynamic headers */}
+//               {unionHeaders.map((header) => {
+//                 if (header.subquestion !== "") {
+//                   return (
+//                     <th
+//                       key={header.key}
+//                       style={tableCellStyle}
+//                       className="sticky-header"
+//                     >
+//                       {header.question}
+//                     </th>
+//                   );
+//                 } else {
+//                   return (
+//                     <th
+//                       key={header.key}
+//                       style={tableCellStyle}
+//                       className="sticky-header"
+//                       rowSpan={2}
+//                     >
+//                       {header.question}
+//                     </th>
+//                   );
+//                 }
+//               })}
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Location
+//               </th>
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Media URL
+//               </th>
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Start Time
+//               </th>
+//               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
+//                 Submitted At
+//               </th>
+//             </tr>
+//             <tr>
+//               {/* Second header row only for dynamic headers with a subquestion */}
+//               {unionHeaders.map((header) =>
+//                 header.subquestion !== "" ? (
+//                   <th key={header.key} style={tableCellStyle}>
+//                     {header.subquestion}
+//                   </th>
+//                 ) : null
+//               )}
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {surveyResponses.map((survey) => (
+//               <tr key={survey._id}>
+//                 {/* Static cells */}
+//                 <td style={tableCellStyle}>
+//                   {survey.surveyId ? survey.surveyId.title : "N/A"}
+//                 </td>
+//                 <td style={tableCellStyle}>
+//                   {survey.enumeratorId
+//                     ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
+//                     : "N/A"}
+//                 </td>
+//                 <td style={tableCellStyle}>
+//                   {survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+//                     ? `${survey.enumeratorId.fieldCoordinatorId.firstName} ${survey.enumeratorId.fieldCoordinatorId.lastName}`
+//                     : "N/A"}
+//                 </td>
+//                 <td style={tableCellStyle}>
+//                   {survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
+//                     ? survey.enumeratorId.fieldCoordinatorId.selectedState
+//                     : "N/A"}
+//                 </td>
+//                 {/* Dynamic cells */}
+//                 {unionHeaders.map((header) => {
+//                   const response = survey.responses.find((r) => {
+//                     const q = r.question.trim();
+//                     const s =
+//                       r.subquestion && r.subquestion.trim() !== ""
+//                         ? r.subquestion.trim()
+//                         : "";
+//                     const currKey = `${normalizeText(q)}|||${normalizeText(s)}`;
+//                     return currKey === header.key;
+//                   });
+//                   return (
+//                     <td key={header.key} style={tableCellStyle}>
+//                       {response && Array.isArray(response.answer)
+//                         ? response.answer.join(", ")
+//                         : "N/A"}
+//                     </td>
+//                   );
+//                 })}
+//                 <td style={tableCellStyle}>{survey.location}</td>
+//                 <td style={tableCellStyle}>
+//                   <a
+//                     href={survey.mediaUrl}
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                   >
+//                     View Media
+//                   </a>
+//                 </td>
+//                 <td style={tableCellStyle}>
+//                   {new Date(survey.startTime).toLocaleString()}
+//                 </td>
+//                 <td style={tableCellStyle}>
+//                   {new Date(survey.submittedAt).toLocaleString()}
+//                 </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//         <button
+//           className="bg-gray-800 text-white px-4 py-4 my-4 rounded"
+//           onClick={exportToExcel}
+//         >
+//           Download as Excel
+//         </button>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default SurveyResponsesTable;
