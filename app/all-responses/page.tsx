@@ -237,7 +237,7 @@ const SurveyResponsesTable: React.FC = () => {
         }
         .table th,
         .table td {
-          min-width: 150px;
+          min-width: 16rem;
           font-size: 0.7rem;
           word-wrap: break-word;
         }
