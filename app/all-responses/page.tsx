@@ -83,12 +83,33 @@ const SurveyResponsesTable: React.FC = () => {
     saveAs(blob, "SurveyResponses.xlsx");
   };
 
+  // const allQuestions = Array.from(
+  //   new Set(
+  //     surveyResponses.flatMap((survey) =>
+  //       survey.responses.map(
+  //         (res) => `${res.question}|||${res.subquestion || ""}`
+  //       )
+  //     )
+  //   )
+  // ).map((key) => {
+  //   const [question, subquestion] = key.split("|||");
+  //   return { question, subquestion };
+  // });
+
   const allQuestions = Array.from(
     new Set(
-      surveyResponses.flatMap((survey) =>
-        survey.responses.map(
-          (res) => `${res.question}|||${res.subquestion || ""}`
-        )
+      surveyResponses.flatMap(
+        (survey) =>
+          survey.responses
+            .filter(
+              (res) => res.question && res.question.trim() !== "" // Exclude empty questions
+            )
+            .map(
+              (res) =>
+                `${res.question.trim().toLowerCase()}|||${
+                  res.subquestion || ""
+                }`
+            ) // Normalize question text
       )
     )
   ).map((key) => {
@@ -228,7 +249,7 @@ const SurveyResponsesTable: React.FC = () => {
                     : "N/A"}
                 </td>
                 {/* Render dynamic question responses */}
-                {allQuestions.map((q, index) => {
+                {/* {allQuestions.map((q, index) => {
                   const foundResponse = survey.responses.find(
                     (res) =>
                       res.question === q.question &&
@@ -245,7 +266,28 @@ const SurveyResponsesTable: React.FC = () => {
                       {answerRendered}
                     </td>
                   );
+                })} */}
+
+                {allQuestions.map((q, index) => {
+                  const foundResponse = survey.responses.find(
+                    (res) =>
+                      res.question &&
+                      res.question.trim().toLowerCase() ===
+                        q.question.toLowerCase() &&
+                      (res.subquestion || "") === q.subquestion
+                  );
+
+                  return (
+                    <td key={index} style={tableCellStyle}>
+                      {foundResponse && foundResponse.answer
+                        ? Array.isArray(foundResponse.answer)
+                          ? foundResponse.answer.join(", ")
+                          : foundResponse.answer
+                        : "N/A"}
+                    </td>
+                  );
                 })}
+
                 <td style={tableCellStyle}>{survey.location}</td>
                 <td style={tableCellStyle}>
                   <a
