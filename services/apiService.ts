@@ -603,6 +603,32 @@ export const fetchAllSurveyResponsesByAdmin = async () => {
   }
 };
 
+//admin
+export const fetchSurveyResponseCount = async (): Promise<number> => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("No authentication token found");
+      throw new Error("No authentication token found");
+    }
+
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/survey-response-count`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Assuming the endpoint returns an object like { count: <number> }
+    return response.data.count;
+  } catch (error) {
+    console.error("Error fetching survey response count:", error);
+    return 0;
+  }
+};
+
 //fetch data responses for field coord by enumerator
 //fetch data responses for field coord by enumerator
 
