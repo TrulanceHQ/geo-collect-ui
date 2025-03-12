@@ -1,11 +1,13 @@
-// working
-
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { fetchAllSurveyResponsesByAdmin } from "@/services/apiService";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
+
+// ──────────────────────────────────────────────
+// Interfaces & Types
+// ──────────────────────────────────────────────
 
 interface SurveyData {
   _id: string;
@@ -19,12 +21,9 @@ interface SurveyData {
       selectedState: string;
     };
   };
-  // Responses may include duplicate entries,
-  // which we will merge.
   responses: {
     question: string;
     subquestion?: string;
-    // Initially a string or array; after preprocessing, we'll store an array.
     answer: string | string[];
   }[];
   location: string;
@@ -33,16 +32,14 @@ interface SurveyData {
   submittedAt: string;
 }
 
-// A dynamic header (i.e. a column) that will be rendered for each unique
-// (question, subquestion) combination.
 interface DynamicHeader {
-  key: string; // computed as normalized(question) + "|||" + normalized(subquestion)
-  question: string; // The display text for the question (trimmed, original casing)
-  subquestion: string; // The display text for the subquestion (if any), or ""
+  key: string;
+  question: string;
+  subquestion: string;
 }
 
 // ──────────────────────────────────────────────
-// CSS for Table Cells
+// Inline Styles & Helper Functions
 // ──────────────────────────────────────────────
 
 const tableCellStyle: React.CSSProperties = {
@@ -50,20 +47,12 @@ const tableCellStyle: React.CSSProperties = {
   padding: "10px",
 };
 
-// ──────────────────────────────────────────────
-// Helper Functions
-// ──────────────────────────────────────────────
-
-// Updated normalize function: trims, lowercases, and removes any trailing colon (or semicolon)
 const normalizeText = (text: string): string => {
   let normalized = text.trim().toLowerCase();
-  // Remove a trailing colon (or comma, semicolon—as needed)
   normalized = normalized.replace(/[:;]+$/, "");
   return normalized;
 };
 
-// Preprocess a single survey’s responses so that duplicate
-// (question, subquestion) entries are merged. Answers are merged into an array.
 const preprocessSurveyResponsesForSurvey = (survey: SurveyData): SurveyData => {
   const mergedMap = new Map<
     string,
@@ -71,13 +60,11 @@ const preprocessSurveyResponsesForSurvey = (survey: SurveyData): SurveyData => {
   >();
 
   survey.responses.forEach((r) => {
-    if (!r.question || r.question.trim() === "") return; // Skip empty questions
-
+    if (!r.question || r.question.trim() === "") return;
     const qDisp = r.question.trim();
     const sDisp =
       r.subquestion && r.subquestion.trim() !== "" ? r.subquestion.trim() : "";
     const key = `${normalizeText(qDisp)}|||${normalizeText(sDisp)}`;
-
     const currentAnswers = Array.isArray(r.answer) ? r.answer : [r.answer];
 
     if (mergedMap.has(key)) {
@@ -97,11 +84,10 @@ const preprocessSurveyResponsesForSurvey = (survey: SurveyData): SurveyData => {
     }
   });
 
-  // Replace responses with merged entries.
   survey.responses = Array.from(mergedMap.values()).map((entry) => ({
     question: entry.question,
     subquestion: entry.subquestion,
-    answer: entry.answers, // now always an array
+    answer: entry.answers,
   }));
 
   return survey;
@@ -155,7 +141,6 @@ const AdvancedPagination: React.FC<PaginationProps> = ({
       >
         {"<"}
       </button>
-
       {pageNumbers.map((page) => (
         <button
           key={page}
@@ -165,7 +150,6 @@ const AdvancedPagination: React.FC<PaginationProps> = ({
           {page}
         </button>
       ))}
-
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
@@ -177,13 +161,12 @@ const AdvancedPagination: React.FC<PaginationProps> = ({
         .pagination-wrapper {
           display: flex;
           gap: 0.5rem;
-          /* Left-aligned (or inherit the download button's alignment) */
         }
         button {
           border: 1px solid #ccc;
           background-color: white;
-          width: 1.6rem;
-          height: 1.6rem;
+          width: 1.5rem;
+          height: 1.5rem;
           border-radius: 50%;
           cursor: pointer;
         }
@@ -200,32 +183,37 @@ const AdvancedPagination: React.FC<PaginationProps> = ({
     </div>
   );
 };
+
 // ──────────────────────────────────────────────
-// Main Component
+// Main Component with Client-Side Pagination
 // ──────────────────────────────────────────────
 
 const SurveyResponsesTable: React.FC = () => {
-  // Raw survey responses from the API.
   const [surveyResponses, setSurveyResponses] = useState<SurveyData[]>([]);
-
-  //new
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const recordsPerPage = 50; // Adjust as needed
+  const recordsPerPage = 50;
 
   useEffect(() => {
     async function fetchData() {
       const responses = await fetchAllSurveyResponsesByAdmin();
-      // Preprocess each survey to merge duplicate question entries.
       const processed = responses.map(preprocessSurveyResponsesForSurvey);
       setSurveyResponses(processed);
     }
     fetchData();
   }, []);
 
-  /*
-    Create a union of all dynamic headers from the preprocessed survey responses.
-    Each header is added only once based on its normalized key.
-  */
+  // Calculate slice boundaries based on current page
+  const indexLastRecord = currentPage * recordsPerPage;
+  const indexFirstRecord = indexLastRecord - recordsPerPage;
+
+  // Slice the full data array to get only the records for the current page.
+  const currentRecords = useMemo(
+    () => surveyResponses.slice(indexFirstRecord, indexLastRecord),
+    [surveyResponses, currentPage, recordsPerPage]
+  );
+
+  const totalPages = Math.ceil(surveyResponses.length / recordsPerPage);
+
   const unionHeaders: DynamicHeader[] = useMemo(() => {
     const headerMap = new Map<string, DynamicHeader>();
     surveyResponses.forEach((survey) => {
@@ -246,9 +234,6 @@ const SurveyResponsesTable: React.FC = () => {
     return Array.from(headerMap.values());
   }, [surveyResponses]);
 
-  /*
-    Filter out headers (dynamic columns) that have no actual nonempty answer across all surveys.
-  */
   const filteredHeaders: DynamicHeader[] = useMemo(() => {
     return unionHeaders.filter((header) =>
       surveyResponses.some((survey) => {
@@ -270,26 +255,28 @@ const SurveyResponsesTable: React.FC = () => {
     );
   }, [unionHeaders, surveyResponses]);
 
-  //new
-  // ──────────────────────────────────────────────
-  // Client-side Pagination (Slice the records to display)
-  // ──────────────────────────────────────────────
-
-  const indexLastRecord = currentPage * recordsPerPage;
-  const indexFirstRecord = indexLastRecord - recordsPerPage;
-  const currentRecords = useMemo(
-    () => surveyResponses.slice(indexFirstRecord, indexLastRecord),
-    [surveyResponses, indexFirstRecord, indexLastRecord]
-  );
-
-  const totalPages = Math.ceil(surveyResponses.length / recordsPerPage);
-
-  /*
-    The Excel export builds rows using the filtered headers.
-  */
   const exportToExcel = () => {
-    const data = surveyResponses.map((survey) => {
-      const row: any = {
+    const dataToExport = surveyResponses.map((survey) => {
+      const dynamicData: Record<string, string> = {};
+      filteredHeaders.forEach((header) => {
+        const response = survey.responses.find((r) => {
+          const q = r.question.trim();
+          const s =
+            r.subquestion && r.subquestion.trim() !== ""
+              ? r.subquestion.trim()
+              : "";
+          const currKey = `${normalizeText(q)}|||${normalizeText(s)}`;
+          return currKey === header.key;
+        });
+        dynamicData[
+          header.question +
+            (header.subquestion ? " - " + header.subquestion : "")
+        ] =
+          response && Array.isArray(response.answer)
+            ? response.answer.join(", ")
+            : "N/A";
+      });
+      return {
         "Survey Title": survey.surveyId ? survey.surveyId.title : "N/A",
         Enumerator: survey.enumeratorId
           ? `${survey.enumeratorId.firstName} ${survey.enumeratorId.lastName}`
@@ -302,69 +289,51 @@ const SurveyResponsesTable: React.FC = () => {
           survey.enumeratorId && survey.enumeratorId.fieldCoordinatorId
             ? survey.enumeratorId.fieldCoordinatorId.selectedState
             : "N/A",
+        ...dynamicData,
+        Location: survey.location,
+        "Media URL": survey.mediaUrl,
+        "Start Time": new Date(survey.startTime).toLocaleString(),
+        "Submitted At": new Date(survey.submittedAt).toLocaleString(),
       };
-
-      filteredHeaders.forEach((header) => {
-        const response = survey.responses.find((r) => {
-          const currKey = `${normalizeText(
-            r.question.trim()
-          )}|||${normalizeText(r.subquestion ? r.subquestion.trim() : "")}`;
-          return currKey === header.key;
-        });
-        row[
-          `${header.question}${
-            header.subquestion ? " - " + header.subquestion : ""
-          }`
-        ] =
-          response && Array.isArray(response.answer)
-            ? response.answer.join(", ")
-            : "N/A";
-      });
-      row["Location"] = survey.location;
-      row["Media URL"] = survey.mediaUrl;
-      row["Start Time"] = new Date(survey.startTime).toLocaleString();
-      row["Submitted At"] = new Date(survey.submittedAt).toLocaleString();
-      return row;
     });
-
-    const worksheet = XLSX.utils.json_to_sheet(data);
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Survey Responses");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "SurveyResponses");
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
     });
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(blob, "SurveyResponses.xlsx");
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "survey_responses.xlsx");
   };
 
   return (
     <>
       <style jsx>{`
+        .table-responsive {
+          overflow-x: auto;
+        }
+        .table {
+          table-layout: auto;
+          width: 100%;
+          border-collapse: collapse;
+        }
         .table th,
         .table td {
           min-width: 20rem;
           font-size: 0.7rem;
           word-wrap: break-word;
+          border: 1px solid black;
         }
-        .table {
-          table-layout: auto;
-          width: 100%;
-        }
-        .table-responsive {
-          overflow-x: auto;
-        }
-        /* Controls container: placed just after the table and aligned with the download button */
         .controls-container {
-          margin-top: 2rem;
+          margin-top: 1rem;
           display: flex;
           flex-direction: column;
-          align-items: flex-start; /* aligns to the same left position as the download button */
+          align-items: flex-start;
           gap: 0.5rem;
         }
         .download-btn {
           padding: 0.75rem 2rem;
-          margin-top: 1rem;
           background-color: #333;
           color: #fff;
           border: none;
@@ -375,12 +344,11 @@ const SurveyResponsesTable: React.FC = () => {
           background-color: #555;
         }
       `}</style>
-      {/* Table Container */}
+
       <div className="table-responsive">
         <table className="table table-bordered">
           <thead className="thead-light">
             <tr>
-              {/* Static Headers */}
               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
                 Survey Title
               </th>
@@ -393,31 +361,26 @@ const SurveyResponsesTable: React.FC = () => {
               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
                 State
               </th>
-              {/* Dynamic Headers */}
-              {filteredHeaders.map((header) => {
-                if (header.subquestion !== "") {
-                  return (
-                    <th
-                      key={header.key}
-                      style={tableCellStyle}
-                      className="sticky-header"
-                    >
-                      {header.question}
-                    </th>
-                  );
-                } else {
-                  return (
-                    <th
-                      key={header.key}
-                      style={tableCellStyle}
-                      className="sticky-header"
-                      rowSpan={2}
-                    >
-                      {header.question}
-                    </th>
-                  );
-                }
-              })}
+              {filteredHeaders.map((header) =>
+                header.subquestion !== "" ? (
+                  <th
+                    key={header.key}
+                    style={tableCellStyle}
+                    className="sticky-header"
+                  >
+                    {header.question}
+                  </th>
+                ) : (
+                  <th
+                    key={header.key}
+                    style={tableCellStyle}
+                    className="sticky-header"
+                    rowSpan={2}
+                  >
+                    {header.question}
+                  </th>
+                )
+              )}
               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
                 Location
               </th>
@@ -432,7 +395,6 @@ const SurveyResponsesTable: React.FC = () => {
               </th>
             </tr>
             <tr>
-              {/* Second header row: only for headers that have a subquestion */}
               {filteredHeaders.map((header) =>
                 header.subquestion !== "" ? (
                   <th key={header.key} style={tableCellStyle}>
@@ -443,9 +405,8 @@ const SurveyResponsesTable: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {surveyResponses.map((survey) => (
+            {currentRecords.map((survey) => (
               <tr key={survey._id}>
-                {/* Static Cells */}
                 <td style={tableCellStyle}>
                   {survey.surveyId ? survey.surveyId.title : "N/A"}
                 </td>
@@ -464,7 +425,6 @@ const SurveyResponsesTable: React.FC = () => {
                     ? survey.enumeratorId.fieldCoordinatorId.selectedState
                     : "N/A"}
                 </td>
-                {/* Dynamic Cells */}
                 {filteredHeaders.map((header) => {
                   const response = survey.responses.find((r) => {
                     const q = r.question.trim();
@@ -504,14 +464,14 @@ const SurveyResponsesTable: React.FC = () => {
           </tbody>
         </table>
       </div>
-      {/* Controls container placed immediately after the table */}
+
       <div className="controls-container">
         <AdvancedPagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />
-        <div className="download-container">
+        <div>
           <button className="download-btn" onClick={exportToExcel}>
             Download as Excel
           </button>
