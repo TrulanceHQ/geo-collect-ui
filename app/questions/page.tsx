@@ -345,7 +345,7 @@ export default function Questions() {
       }
 
       const data = await response.json();
-      // console.log("Survey created successfully:", data);
+
       toast("Survey created successfully!");
 
       setTitle("");

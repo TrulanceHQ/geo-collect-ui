@@ -73,7 +73,6 @@ export default function EnumeratorDashboard() {
       try {
         const decodedToken = jwtDecode<{ sub: string }>(token); // Define the expected type
         const userId = decodedToken.sub;
-        console.log("Decoded Token:", decodedToken);
 
         const data = await fetchUserData(userId); // Now userId is typed as string
         setEnumeratorData({
@@ -173,7 +172,7 @@ export default function EnumeratorDashboard() {
           surveyId: { _id: response.surveyId, title: "" }, // Adjust the title as needed
         }));
         setResponses(surveyResponses);
-        console.log("Responses:", data);
+
         setTotalResponses(data.length);
       } catch (error) {
         console.error("Error fetching responses:", error);

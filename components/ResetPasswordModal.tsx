@@ -29,7 +29,7 @@ const ResetPasswordModal = ({
     try {
       const data = await updateUserPassword(userId, oldPassword, newPassword);
       toast.success(data.message);
-      console.log("Responses:", data);
+
       onClose();
     } catch (error) {
       console.error("Failed to update password from modal", error);

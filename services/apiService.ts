@@ -36,7 +36,7 @@ export const login = async (emailAddress: string, password: string) => {
       emailAddress,
       password,
     });
-    // console.log(response.data);
+
     if (response.data?.accessToken) {
       toast.success("Login successful");
       return response.data;
@@ -66,7 +66,6 @@ export const createUsers = async (
     const decodedToken = jwtDecode(token);
     const adminId = decodedToken.sub;
 
-    console.log(emailAddress, role, selectedState, creatorRole, adminId);
     const response = await axios.post(
       `${API_BASE_URL}/create-user`,
       {
@@ -82,13 +81,7 @@ export const createUsers = async (
         },
       }
     );
-    console.log("Request payload:", {
-      emailAddress,
-      role,
-      creatorRole,
-      selectedState,
-      adminId,
-    });
+
     // toast.success("User created successful");
     return response.data;
   } catch (error) {
@@ -124,15 +117,6 @@ export const createEnumerators = async (
     const selectedState =
       creatorRole === "fieldCoordinator" ? getUserState() : "";
 
-    console.log("Payload being sent:", {
-      emailAddress,
-      role,
-      creatorRole,
-      selectedState,
-      fieldCoordinatorId,
-      // enumeratorId,
-    });
-
     const response = await axios.post(
       `${API_BASE_URL}/create-enumerator`,
       {
@@ -148,13 +132,7 @@ export const createEnumerators = async (
         },
       }
     );
-    console.log("Request payload:", {
-      emailAddress,
-      role,
-      creatorRole,
-      selectedState,
-      fieldCoordinatorId,
-    });
+
     toast.success("User created successful");
     return response.data;
   } catch (error) {
@@ -271,10 +249,9 @@ export const submitSurvey = async (surveyData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    // console.log("Request payload:", response.data);
+
     return response.data;
   } catch (error: any) {
-    // console.log("Error submitting survey:", error);
     toast.error(error.response?.data?.message || "Failed to submit survey");
     throw error;
   }
@@ -292,8 +269,7 @@ export const createState = async (
     }
 
     const payload = { ngstates: stateNames, creatorRole };
-    // console.log("Sending request payload:", JSON.stringify(payload, null, 2));
-    // Make API request to create state
+
     const response = await axios.post(
       `${API_BASE_URL}/create-state`, // Ensure the endpoint is correct
 
@@ -306,7 +282,6 @@ export const createState = async (
       }
     );
 
-    // console.log("Request payload:", { ngstates: stateNames, creatorRole });
     toast.success("State created successfully!");
     return response.data;
   } catch (error) {
@@ -328,13 +303,11 @@ export const fetchTotalStates = async (): Promise<StateResponse> => {
       throw new Error("No authentication token found");
     }
 
-    // console.log("Token:", token); // Debug token retrieval
     const response = await axios.get(`${API_BASE_URL}/view-states`, {
       headers: {
         Authorization: `Bearer ${token}`, // Include token in request
       },
     });
-    console.log("States Response:", response.data); // Debug API response
 
     // Ensure response format is correct
     if (
@@ -424,7 +397,7 @@ export const submitQuestionnaire = async (questionnaireData: any) => {
     );
 
     toast.success("Survey submitted successfully!");
-    // console.log("response:", response.data);
+
     return response.data;
   } catch (error: any) {
     if (error.response?.data?.message === "Token verification failed") {
@@ -627,6 +600,32 @@ export const fetchAllSurveyResponsesByAdmin = async () => {
   } catch (error) {
     console.error("Error fetching survey responses:", error);
     return [];
+  }
+};
+
+//admin
+export const fetchSurveyResponseCount = async (): Promise<number> => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("No authentication token found");
+      throw new Error("No authentication token found");
+    }
+
+    const response = await axios.get(
+      `${API_BASE_URL}/enumerator/survey-response-count`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Assuming the endpoint returns an object like { count: <number> }
+    return response.data.count;
+  } catch (error) {
+    console.error("Error fetching survey response count:", error);
+    return 0;
   }
 };
 

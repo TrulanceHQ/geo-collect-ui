@@ -5,6 +5,7 @@ import { FaEdit } from "react-icons/fa";
 import {
   createState,
   createUsers,
+  fetchSurveyResponseCount,
   fetchTotalStates,
   fetchUserData,
   fetchUsersPerRole,
@@ -45,7 +46,6 @@ export default function DashboardPage() {
       try {
         const decodedToken = jwtDecode<{ sub: string }>(token); // Define the expected type
         const userId = decodedToken.sub;
-        console.log("Decoded Token:", decodedToken);
 
         const data = await fetchUserData(userId); // Now userId is typed as string
         setAdminData({
@@ -108,6 +108,8 @@ export default function DashboardPage() {
   const [stateName, setStateName] = useState<string[]>([]);
   const [newState, setNewState] = useState(""); // Temporary input for a single state
   const [totalStates, setTotalStates] = useState<number>(0); // Store total count
+  const [surveyResponseCount, setSurveyResponseCount] = useState(0); // Add this line
+
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [userId, setUserId] = useState("");
   //fetch states from backend for add user
@@ -140,6 +142,16 @@ export default function DashboardPage() {
     };
 
     getUserCounts();
+  }, []);
+
+  //new
+  useEffect(() => {
+    const getResponseCount = async () => {
+      const count = await fetchSurveyResponseCount();
+      setSurveyResponseCount(count);
+    };
+
+    getResponseCount();
   }, []);
 
   const handleCreateUser = async () => {
@@ -190,8 +202,7 @@ export default function DashboardPage() {
     const creatorRole = "admin";
     try {
       const data = await createState(stateName, creatorRole);
-      // console.log("States created successfully:", data);
-      // setStateSuccess("States created successfully!");
+
       setIsStateFormOpen(false);
       setStateName([]); // Reset the state list after success
       setError("");
@@ -481,8 +492,8 @@ export default function DashboardPage() {
         {/* Metrics Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white shadow-md rounded-lg p-4 text-center">
-            <h3 className="text-lg font-semibold">Total Data</h3>
-            <p className="text-2xl font-bold">0</p>
+            <h3 className="text-lg font-semibold">Total Data Collected</h3>
+            <p className="text-2xl font-bold">{surveyResponseCount}</p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-4 text-center">

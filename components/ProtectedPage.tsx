@@ -30,7 +30,8 @@ const ProtectedPage = ({
     return null; // Return nothing to avoid showing content briefly
   }
 
-  return <div>{children}</div>; // Render the protected content once role check passes
+  return <div>{children}</div>; 
+  // Render the protected content once role check passes
 };
 
 export default ProtectedPage;
