@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { fetchAllSurveyResponsesByAdmin } from "@/services/apiService";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
@@ -185,13 +185,14 @@ const AdvancedPagination: React.FC<PaginationProps> = ({
 };
 
 // ──────────────────────────────────────────────
-// Main Component with Client-Side Pagination
+// Main Component with Numbering and Scroll-to-Top Pagination
 // ──────────────────────────────────────────────
 
 const SurveyResponsesTable: React.FC = () => {
   const [surveyResponses, setSurveyResponses] = useState<SurveyData[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const recordsPerPage = 50;
+  const tableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -202,11 +203,18 @@ const SurveyResponsesTable: React.FC = () => {
     fetchData();
   }, []);
 
+  // Scroll to the top of the tableRef when currentPage changes
+  useEffect(() => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentPage]);
+
   // Calculate slice boundaries based on current page
   const indexLastRecord = currentPage * recordsPerPage;
   const indexFirstRecord = indexLastRecord - recordsPerPage;
 
-  // Slice the full data array to get only the records for the current page.
+  // Get only the current page's records
   const currentRecords = useMemo(
     () => surveyResponses.slice(indexFirstRecord, indexLastRecord),
     [surveyResponses, currentPage, recordsPerPage]
@@ -325,6 +333,7 @@ const SurveyResponsesTable: React.FC = () => {
           word-wrap: break-word;
           border: 1px solid black;
         }
+
         .controls-container {
           margin-top: 1rem;
           display: flex;
@@ -345,10 +354,15 @@ const SurveyResponsesTable: React.FC = () => {
         }
       `}</style>
 
-      <div className="table-responsive">
+      {/* The table container is referenced by tableRef */}
+      <div className="table-responsive" ref={tableRef}>
         <table className="table table-bordered">
           <thead className="thead-light">
             <tr>
+              {/* Numbering column header */}
+              <th className="sticky-header" style={tableCellStyle}>
+                #
+              </th>
               <th className="sticky-header" style={tableCellStyle} rowSpan={2}>
                 Survey Title
               </th>
@@ -405,8 +419,10 @@ const SurveyResponsesTable: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {currentRecords.map((survey) => (
+            {currentRecords.map((survey, index) => (
               <tr key={survey._id}>
+                {/* Number this row relative to overall dataset */}
+                <td style={tableCellStyle}>{indexFirstRecord + index + 1}</td>
                 <td style={tableCellStyle}>
                   {survey.surveyId ? survey.surveyId.title : "N/A"}
                 </td>
