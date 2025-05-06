@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// Working starts
-
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -363,7 +360,7 @@ export default function Questions() {
     <div className="relative p-6">
       <div className="absolute top-4 right-6">
         <Image
-          src="/logo.png"
+          src="/geotrak-icon.png"
           alt="Company Logo"
           width={60}
           height={50}

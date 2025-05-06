@@ -246,7 +246,7 @@ export default function FieldCoordinatorsDashboard() {
           {/* Logo at the top right */}
           <div className="absolute top-4 right-6">
             <Image
-              src="/logo.png"
+              src="/geotrak-icon.png"
               alt="Company Logo"
               width={60}
               height={50}
