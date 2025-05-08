@@ -144,6 +144,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { requestDemo } from "@/services/apiService";
 
 export default function Home() {
   return (
@@ -176,8 +177,115 @@ export default function Home() {
   );
 }
 
+function DemoModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await requestDemo({ fullName, email, phone });
+      // reset form
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+        <h2 className="text-xl font-bold mb-4">Request a Demo</h2>
+        {/* <form className="space-y-4">
+          <div>
+            <input
+              type="text"
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Full Name"
+            />
+          </div>
+          <div>
+            <input
+              type="email"
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Email Address"
+            />
+          </div>
+          <div>
+            <input
+              type="tel"
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Phone Number"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-[#0052CC] text-white py-2 rounded-lg hover:bg-[#0041A3] transition"
+          >
+            Submit
+          </button>
+        </form> */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            type="text"
+            placeholder="Full Name"
+            className="w-full mt-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            placeholder="Email Address"
+            className="w-full mt-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            type="tel"
+            placeholder="Phone Number"
+            className="w-full mt-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#0052CC] text-white py-2 rounded-lg hover:bg-[#0041A3] transition disabled:opacity-50"
+          >
+            {loading ? "Submitting..." : "Submit"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function Hero() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-b from-white to-blue-50">
@@ -209,9 +317,11 @@ function Hero() {
             <a
               href="#"
               className="hidden md:inline-block px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+              onClick={() => setModalOpen(true)}
             >
               Request a Demo
             </a>
+
             <button
               className="md:hidden ml-3 focus:outline-none"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -257,8 +367,9 @@ function Hero() {
               <a
                 href="#"
                 className="block mt-2 px-4 py-2 border border-gray-300 rounded-lg text-center hover:bg-gray-100 transition"
+                onClick={() => setModalOpen(true)}
               >
-                Get started for free
+                Request a Demo
               </a>
             </div>
           </div>
@@ -272,19 +383,24 @@ function Hero() {
           </h1>
           <p className="mt-4 text-gray-600 max-w-xl mx-auto text-base md:text-lg">
             Geotrak lets your team capture photos, videos, audio, and
-            geolocation data in real-time—perfect for surveys, inspections, and
+            geolocation data in real-time, perfect for surveys, inspections, and
             on-the-ground reporting.
           </p>
-          <button className="mt-8 px-8 py-3 text-white rounded-lg bg-[#0052CC] hover:bg-[#0041A3] transition-colors duration-300 ease-in-out">
+          <button
+            className="mt-8 px-8 py-3 text-white rounded-lg bg-[#0052CC] hover:bg-[#0041A3] transition-colors duration-300 ease-in-out"
+            onClick={() => setModalOpen(true)}
+          >
             Request a Demo
           </button>
         </div>
       </header>
+      <DemoModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
 
 function Partners() {
+  const [isModalOpen, setModalOpen] = useState(false);
   const logos = [
     "/asset/logos/gear.png",
     "/asset/logos/intellex.png",
@@ -461,6 +577,7 @@ function GeotrakUseCases() {
 }
 
 function PromoBanner() {
+  const [isModalOpen, setModalOpen] = useState(false);
   return (
     <section className="bg-white py-16">
       <div className="max-w-6xl mx-auto px-4 flex flex-col lg:flex-row items-center">
@@ -474,7 +591,10 @@ function PromoBanner() {
             Geotrak lets you track locations and capture photos, videos, and
             audio seamlessly and in real time.
           </p>
-          <button className="mt-8 px-8 py-3 text-white rounded-lg bg-[#0052CC] hover:bg-[#0041A3] transition-colors duration-300 ease-in-out">
+          <button
+            className="mt-8 px-8 py-3 text-white rounded-lg bg-[#0052CC] hover:bg-[#0041A3] transition-colors duration-300 ease-in-out"
+            onClick={() => setModalOpen(true)}
+          >
             Request a Demo
           </button>
         </div>
@@ -490,6 +610,7 @@ function PromoBanner() {
           </div>
         </div>
       </div>
+      <DemoModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </section>
   );
 }
@@ -582,6 +703,7 @@ function FAQSection() {
   );
 }
 function CTASection() {
+  const [isModalOpen, setModalOpen] = useState(false);
   return (
     <div className="flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8 py-8">
       <div
@@ -597,10 +719,14 @@ function CTASection() {
           Discover how Geotrak simplifies location-tagged data collection and
           real-time media documentation. Get a firsthand look at how it works.
         </p>
-        <button className="px-8 py-3 text-black rounded-lg bg-[#FFFFFF] hover:bg-[#D9D9D9] transition-colors duration-300 ease-in-out">
+        <button
+          className="px-8 py-3 text-black rounded-lg bg-[#FFFFFF] hover:bg-[#D9D9D9] transition-colors duration-300 ease-in-out"
+          onClick={() => setModalOpen(true)}
+        >
           Request a Demo
         </button>
       </div>
+      <DemoModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

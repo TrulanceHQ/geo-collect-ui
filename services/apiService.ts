@@ -57,7 +57,6 @@ export const createUsers = async (
   selectedState: string
 ) => {
   try {
-    // Retrieve token from local storage (or wherever you store the user's token)
     const token = localStorage.getItem("accessToken");
     if (!token) {
       throw new Error("No token found");
@@ -82,13 +81,10 @@ export const createUsers = async (
       }
     );
 
-    // toast.success("User created successful");
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);
-    // const errorMessage = "Failed to create user";
 
-    // toast.error(errorMessage);
     throw error;
   }
 };
@@ -656,4 +652,20 @@ export const getSurveyResponsesByFieldCoordinator = async (
   }
 };
 
-//fetch survey count for field coord
+export interface DemoRequestPayload {
+  fullName: string;
+  email: string;
+  phone: string;
+}
+
+export const requestDemo = async (payload: DemoRequestPayload) => {
+  try {
+    const res = await axios.post(`${API_BASE_URL}/demo-requests`, payload);
+    toast.success("Demo request submitted!");
+    return res.data;
+  } catch (err: any) {
+    console.error("Error submitting demo request", err);
+    toast.error(err.response?.data?.message || "Failed to submit demo request");
+    throw err;
+  }
+};
